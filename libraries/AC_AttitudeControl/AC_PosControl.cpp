@@ -866,14 +866,14 @@ void AC_PosControl::update_xy_controller()
         dt = 0.0f;
     }
 
-    // check for ekf xy position reset
-    check_for_ekf_xy_reset();
+    // check for ekf xy position reset -> Not Needed - we don't use position
+    // check_for_ekf_xy_reset();
 
-    // check if xy leash needs to be recalculated
-    calc_leash_length_xy();
+    // check if xy leash needs to be recalculated -> Not Needed - we don't use position
+    // calc_leash_length_xy();
 
-    // translate any adjustments from pilot to loiter target
-    desired_vel_to_pos(dt);
+    // translate any adjustments from pilot to loiter target -> Not Needed - we don't use position
+    // desired_vel_to_pos(dt);
 
     // run horizontal position controller
     run_xy_controller(dt);
@@ -1009,32 +1009,38 @@ void AC_PosControl::run_xy_controller(float dt)
     float ekfGndSpdLimit, ekfNavVelGainScaler;
     AP::ahrs_navekf().getEkfControlLimits(ekfGndSpdLimit, ekfNavVelGainScaler);
 
-    Vector3f curr_pos = _inav.get_position();
-    float kP = ekfNavVelGainScaler * _p_pos_xy.kP(); // scale gains to compensate for noisy optical flow measurement in the EKF
+    // ++++++++++++++++++++++++ Tests >= D3 ++++++++++++++++++++++
+    // target = velocity feed-forward
+    _vel_target.x = _vel_desired.x;
+    _vel_target.y = _vel_desired.y;
 
-    // avoid divide by zero
-    if (kP <= 0.0f) {
-        _vel_target.x = 0.0f;
-        _vel_target.y = 0.0f;
-    } else {
-        // calculate distance error
-        _pos_error.x = _pos_target.x - curr_pos.x;
-        _pos_error.y = _pos_target.y - curr_pos.y;
+    // Vector3f curr_pos = _inav.get_position();
+    // float kP = ekfNavVelGainScaler * _p_pos_xy.kP(); // scale gains to compensate for noisy optical flow measurement in the EKF
 
-        // Constrain _pos_error and target position
-        // Constrain the maximum length of _vel_target to the maximum position correction velocity
-        // TODO: replace the leash length with a user definable maximum position correction
-        if (limit_vector_length(_pos_error.x, _pos_error.y, _leash)) {
-            _pos_target.x = curr_pos.x + _pos_error.x;
-            _pos_target.y = curr_pos.y + _pos_error.y;
-        }
+    // // avoid divide by zero
+    // if (kP <= 0.0f) {
+    //     _vel_target.x = 0.0f;
+    //     _vel_target.y = 0.0f;
+    // } else {
+    //     // calculate distance error
+    //     _pos_error.x = _pos_target.x - curr_pos.x;
+    //     _pos_error.y = _pos_target.y - curr_pos.y;
 
-        _vel_target = sqrt_controller(_pos_error, kP, _accel_cms);
-    }
+    //     // Constrain _pos_error and target position
+    //     // Constrain the maximum length of _vel_target to the maximum position correction velocity
+    //     // TODO: replace the leash length with a user definable maximum position correction
+    //     if (limit_vector_length(_pos_error.x, _pos_error.y, _leash)) {
+    //         _pos_target.x = curr_pos.x + _pos_error.x;
+    //         _pos_target.y = curr_pos.y + _pos_error.y;
+    //     }
 
-    // add velocity feed-forward
-    _vel_target.x += _vel_desired.x;
-    _vel_target.y += _vel_desired.y;
+    //     _vel_target = sqrt_controller(_pos_error, kP, _accel_cms);
+    // }
+
+    // // add velocity feed-forward
+    // _vel_target.x += _vel_desired.x;
+    // _vel_target.y += _vel_desired.y;
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
 
     // the following section converts desired velocities in lat/lon directions to accelerations in lat/lon frame
 
@@ -1074,6 +1080,7 @@ void AC_PosControl::run_xy_controller(float dt)
     accel_target.x = (vel_xy_p.x + vel_xy_i.x + vel_xy_d.x) * ekfNavVelGainScaler;
     accel_target.y = (vel_xy_p.y + vel_xy_i.y + vel_xy_d.y) * ekfNavVelGainScaler;
 
+
     // reset accel to current desired acceleration
     if (_flags.reset_accel_to_lean_xy) {
         _accel_target_filter.reset(Vector2f(accel_target.x, accel_target.y));
@@ -1092,15 +1099,20 @@ void AC_PosControl::run_xy_controller(float dt)
     _accel_target.x += _accel_desired.x;
     _accel_target.y += _accel_desired.y;
 
-    // the following section converts desired accelerations provided in lat/lon frame to roll/pitch angles
+    // send control input to motors
+    motors.set_forward(_accel_target.x);
+    motors.set_lateral(_accel_target.y);
 
-    // limit acceleration using maximum lean angles
-    float angle_max = MIN(_attitude_control.get_althold_lean_angle_max(), get_lean_angle_max_cd());
-    float accel_max = MIN(GRAVITY_MSS * 100.0f * tanf(ToRad(angle_max * 0.01f)), POSCONTROL_ACCEL_XY_MAX);
-    _limit.accel_xy = limit_vector_length(_accel_target.x, _accel_target.y, accel_max);
+    // // the following section converts desired accelerations provided in lat/lon frame to roll/pitch angles
 
-    // update angle targets that will be passed to stabilize controller
-    accel_to_lean_angles(_accel_target.x, _accel_target.y, _roll_target, _pitch_target);
+    // // limit acceleration using maximum lean angles
+    // float angle_max = MIN(_attitude_control.get_althold_lean_angle_max(), get_lean_angle_max_cd());
+    // float accel_max = MIN(GRAVITY_MSS * 100.0f * tanf(ToRad(angle_max * 0.01f)), POSCONTROL_ACCEL_XY_MAX);
+    // _limit.accel_xy = limit_vector_length(_accel_target.x, _accel_target.y, accel_max);
+
+    // // update angle targets that will be passed to stabilize controller
+    // accel_to_lean_angles(_accel_target.x, _accel_target.y, _roll_target, _pitch_target);
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
 }
 
 // get_lean_angles_to_accel - convert roll, pitch lean angles to lat/lon frame accelerations in cm/s/s

@@ -178,7 +178,7 @@ bool Sub::mode_requires_GPS(control_mode_t mode)
     case AUTO:
     case GUIDED:
     case CIRCLE:
-    case POSHOLD:
+    //case POSHOLD:
         return true;
     default:
         return false;

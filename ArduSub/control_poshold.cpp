@@ -9,10 +9,10 @@
 // poshold_init - initialise PosHold controller
 bool Sub::poshold_init()
 {
-    // fail to initialise PosHold mode if no GPS lock
-    if (!position_ok()) {
-        return false;
-    }
+    // // fail to initialise PosHold mode if no GPS lock
+    // if (!position_ok()) {
+    //     return false;
+    // }
     pos_control.init_vel_controller_xyz();
     pos_control.set_desired_velocity_xy(0, 0);
     pos_control.set_target_to_stopping_point_xy();
@@ -55,30 +55,49 @@ void Sub::poshold_run()
     // set motors to full range
     motors.set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
-    ///////////////////////
-    // update xy outputs //
+    // ++++++++++++++++++++++++ Tests >= D3 ++++++++++++++++++++++
+        ///////////////////////
+    // NEW update xy outputs //
+    // Get pilot input
     float pilot_lateral = channel_lateral->norm_input();
     float pilot_forward = channel_forward->norm_input();
-
-    float lateral_out = 0;
-    float forward_out = 0;
-
+    // Set desired velocity
     pos_control.set_desired_velocity_xy(0,0);
+    // Velocity control or Pilot override
+    if (fabsf(pilot_forward) > 0.1 || fabsf(pilot_lateral) > 0.1 ) { // Forward/lateral input above 10%
+        motors.set_forward(forward_out + pilot_forward);
+        motors.set_lateral(lateral_out + pilot_lateral);
+    } else { // hold speed
+        pos_control.update_xy_controller();      
+    }   
 
-    if (position_ok()) {
-        // Allow pilot to reposition the sub
-        if (fabsf(pilot_lateral) > 0.1 || fabsf(pilot_forward) > 0.1) {
-            pos_control.set_target_to_stopping_point_xy();
-        }
-        translate_pos_control_rp(lateral_out, forward_out);
-        pos_control.update_xy_controller();
-    } else {
-        pos_control.init_vel_controller_xyz();
-        pos_control.set_desired_velocity_xy(0, 0);
-        pos_control.set_target_to_stopping_point_xy();
-    }
-    motors.set_forward(forward_out + pilot_forward);
-    motors.set_lateral(lateral_out + pilot_lateral);
+    // ///////////////////////
+    // // OLD update xy outputs //
+    // float pilot_lateral = channel_lateral->norm_input();
+    // float pilot_forward = channel_forward->norm_input();
+
+    // float lateral_out = 0;
+    // float forward_out = 0;
+
+    // pos_control.set_desired_velocity_xy(0,0);
+
+    // if (position_ok()) {
+    //     // Allow pilot to reposition the sub
+    //     if (fabsf(pilot_lateral) > 0.1 || fabsf(pilot_forward) > 0.1) {
+    //         pos_control.set_target_to_stopping_point_xy();
+    //     }
+    //     translate_pos_control_rp(lateral_out, forward_out);
+    //     pos_control.update_xy_controller();
+    // } else {
+    //     pos_control.init_vel_controller_xyz();
+    //     pos_control.set_desired_velocity_xy(0, 0);
+    //     pos_control.set_target_to_stopping_point_xy();
+    // }
+    // motors.set_forward(forward_out + pilot_forward);
+    // motors.set_lateral(lateral_out + pilot_lateral);
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+
+    // -------------------- Tests D1, D2, ..., D14 ---------------
     /////////////////////
     // Update attitude //
 
@@ -111,8 +130,11 @@ void Sub::poshold_run()
             attitude_control.input_euler_angle_roll_pitch_yaw(target_roll, target_pitch, last_pilot_heading, true);
         }
     }
+    // -----------------------------------------------------------------
 
+    // =========================== Tests D2, D3, ..., D14 ==============
     // Update z axis //
     control_depth();
+    // =================================================================
 }
 #endif  // POSHOLD_ENABLED == ENABLED
