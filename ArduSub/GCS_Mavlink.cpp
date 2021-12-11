@@ -590,7 +590,7 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         mavlink_msg_set_position_target_local_ned_decode(&msg, &packet);
 
         // exit if vehicle is not in Guided mode or Auto-Guided mode
-        if ((sub.control_mode != GUIDED) && !(sub.control_mode == AUTO && sub.auto_mode == Auto_NavGuided)) {
+        if ((sub.control_mode != GUIDED) && !(sub.control_mode == AUTO && sub.auto_mode == Auto_NavGuided && (sub.control_mode != POSHOLD)) {
             break;
         }
 
@@ -646,13 +646,14 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         }
 
         // send request
-        if (!pos_ignore && !vel_ignore && acc_ignore) {
-            sub.guided_set_destination_posvel(pos_vector, vel_vector);
-        } else if (pos_ignore && !vel_ignore && acc_ignore) {
-            sub.guided_set_velocity(vel_vector);
-        } else if (!pos_ignore && vel_ignore && acc_ignore) {
-            sub.guided_set_destination(pos_vector);
-        }
+        sub.poshold_set_velocity(vel_vector);
+        // if (!pos_ignore && !vel_ignore && acc_ignore) {
+        //     sub.guided_set_destination_posvel(pos_vector, vel_vector);
+        // } else if (pos_ignore && !vel_ignore && acc_ignore) {
+        //     sub.guided_set_velocity(vel_vector);
+        // } else if (!pos_ignore && vel_ignore && acc_ignore) {
+        //     sub.guided_set_destination(pos_vector);
+        // }
 
         break;
     }

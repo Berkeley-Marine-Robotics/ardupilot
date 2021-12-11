@@ -153,7 +153,6 @@ public:
         k_param_p_vel_z, // deprecated
         k_param_pid_accel_z, // deprecated
 
-
         // Failsafes
         k_param_failsafe_gcs = 140,
         k_param_failsafe_leak, // leak failsafe behavior

@@ -61,8 +61,8 @@ void Sub::poshold_run()
     // Get pilot input
     float pilot_lateral = channel_lateral->norm_input();
     float pilot_forward = channel_forward->norm_input();
-    // Set desired velocity
-    pos_control.set_desired_velocity_xy(0,0);
+    // // Set desired velocity
+    // pos_control.set_desired_velocity_xy(0,0);
     // Velocity control or Pilot override
     if (fabsf(pilot_forward) > 0.1 || fabsf(pilot_lateral) > 0.1 ) { // Forward/lateral input above 10%
         motors.set_forward(forward_out + pilot_forward);
@@ -137,4 +137,19 @@ void Sub::poshold_run()
     control_depth();
     // =================================================================
 }
+// guided_set_velocity - sets guided mode's target velocity
+void Sub::poshold_set_velocity(const Vector3f& velocity)
+{
+    // // check we are in velocity control mode
+    // if (guided_mode != Guided_Velocity) {
+    //     guided_vel_control_start();
+    // }
+
+    // vel_update_time_ms = AP_HAL::millis();
+
+    // set position controller velocity target
+    pos_control.set_desired_velocity(velocity);
+}
+
+
 #endif  // POSHOLD_ENABLED == ENABLED
