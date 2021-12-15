@@ -502,6 +502,7 @@ private:
 
     bool poshold_init(void);
     void poshold_run();
+    void poshold_set_velocity(const Vector3f& velocity);
 
     bool motordetect_init();
     void motordetect_run();

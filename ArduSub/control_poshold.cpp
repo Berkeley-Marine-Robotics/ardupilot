@@ -15,7 +15,7 @@ bool Sub::poshold_init()
     // }
     pos_control.init_vel_controller_xyz();
     pos_control.set_desired_velocity_xy(0, 0);
-    pos_control.set_target_to_stopping_point_xy();
+    // pos_control.set_target_to_stopping_point_xy();
 
     // initialize vertical speeds and acceleration
     pos_control.set_max_speed_z(-get_pilot_speed_dn(), g.pilot_speed_up);
@@ -65,8 +65,8 @@ void Sub::poshold_run()
     // pos_control.set_desired_velocity_xy(0,0);
     // Velocity control or Pilot override
     if (fabsf(pilot_forward) > 0.1 || fabsf(pilot_lateral) > 0.1 ) { // Forward/lateral input above 10%
-        motors.set_forward(forward_out + pilot_forward);
-        motors.set_lateral(lateral_out + pilot_lateral);
+        motors.set_forward(pilot_forward);
+        motors.set_lateral(pilot_lateral);
     } else { // hold speed
         pos_control.update_xy_controller();      
     }   

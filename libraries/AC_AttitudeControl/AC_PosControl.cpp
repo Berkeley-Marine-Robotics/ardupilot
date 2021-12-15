@@ -214,7 +214,7 @@ const AP_Param::GroupInfo AC_PosControl::var_info[] = {
 // their values.
 //
 AC_PosControl::AC_PosControl(AP_AHRS_View& ahrs, const AP_InertialNav& inav,
-                             const AP_Motors& motors, AC_AttitudeControl& attitude_control) :
+                             AP_Motors& motors, AC_AttitudeControl& attitude_control) :
     _ahrs(ahrs),
     _inav(inav),
     _motors(motors),
@@ -914,9 +914,11 @@ void AC_PosControl::init_vel_controller_xyz()
     _flags.reset_accel_to_lean_xy = true;
 
     // set target position
-    const Vector3f& curr_pos = _inav.get_position();
-    set_xy_target(curr_pos.x, curr_pos.y);
-    set_alt_target(curr_pos.z);
+    // const Vector3f& curr_pos = _inav.get_position();
+    // set_xy_target(curr_pos.x, curr_pos.y);
+    // set_alt_target(curr_pos.z);
+    set_alt_target(_inav.get_altitude());
+    
 
     // move current vehicle velocity into feed forward velocity
     const Vector3f& curr_vel = _inav.get_velocity();
@@ -1100,8 +1102,8 @@ void AC_PosControl::run_xy_controller(float dt)
     _accel_target.y += _accel_desired.y;
 
     // send control input to motors
-    motors.set_forward(_accel_target.x);
-    motors.set_lateral(_accel_target.y);
+    _motors.set_forward(_accel_target.x);
+    _motors.set_lateral(_accel_target.y);
 
     // // the following section converts desired accelerations provided in lat/lon frame to roll/pitch angles
 
