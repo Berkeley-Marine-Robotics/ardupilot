@@ -1096,6 +1096,15 @@ void AC_PosControl::run_xy_controller(float dt)
     accel_target.x = (vel_xy_p.x + vel_xy_i.x + vel_xy_d.x) * ekfNavVelGainScaler;
     accel_target.y = (vel_xy_p.y + vel_xy_i.y + vel_xy_d.y) * ekfNavVelGainScaler;
 
+    printf("PIDx terms:\n");
+    printf("Px term: %.2f\n", vel_xy_p.x);
+    printf("Ix term: %.2f\n", vel_xy_i.x);
+    printf("Dx term: %.2f\n", vel_xy_d.x);
+
+    printf("PIDy terms:\n");
+    printf("Py term: %.2f\n", vel_xy_p.y);
+    printf("Iy term: %.2f\n", vel_xy_i.y);
+    printf("Dy term: %.2f\n", vel_xy_d.y);
 
     // reset accel to current desired acceleration
     if (_flags.reset_accel_to_lean_xy) {
