@@ -584,6 +584,12 @@ void AC_PosControl::run_z_controller()
 
     const Vector3f& curr_vel = _inav.get_velocity();
 
+    printf("Vertical desired velocity in NEU\n");
+    printf("Vz desired: %.2f cm/s\n", _vel_desired.z);
+    printf("Vertical estimated velocity in NEU\n");
+    printf("Vz estimate: %.2f cm/s\n", curr_vel.z); 
+
+
     // TODO: remove velocity derivative calculation
     // reset last velocity target to current target
     if (_flags.reset_rate_to_accel_z) {
@@ -1055,6 +1061,14 @@ void AC_PosControl::run_xy_controller(float dt)
         _vehicle_horiz_vel.x = _inav.get_velocity().x;
         _vehicle_horiz_vel.y = _inav.get_velocity().y;
     }
+
+
+    printf("Horizontal target velocity in NEU:\n");
+    printf("Vx target: %.2f cm/s\n", _vel_target.x);
+    printf("Vy target: %.2f cm/s\n", _vel_target.y);
+    printf("Horizontal estimated velocity in NEU:\n");
+    printf("Vx estimate: %.2f cm/s\n", _vehicle_horiz_vel.x);
+    printf("Vy estimate: %.2f cm/s\n", _vehicle_horiz_vel.y);    
 
     // calculate velocity error
     _vel_error.x = _vel_target.x - _vehicle_horiz_vel.x;
