@@ -639,10 +639,10 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         if (!vel_ignore) {
             // convert to cm
             vel_vector = Vector3f(packet.vx * 100.0f, packet.vy * 100.0f, -packet.vz * 100.0f);
-            // rotate to body-frame if necessary
-            if (packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
-                sub.rotate_body_frame_to_NE(vel_vector.x, vel_vector.y);
-            }
+            // // rotate to body-frame if necessary -> KEEP REF VELOCITY IN BODY FRAME
+            // if (packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
+            //     sub.rotate_body_frame_to_NE(vel_vector.x, vel_vector.y);
+            // }
         }
 
         // send request

@@ -575,10 +575,11 @@ void AC_PosControl::run_z_controller()
         _limit.vel_up = true;
     }
 
-    // add feed forward component
-    if (_flags.use_desvel_ff_z) {
-        _vel_target.z += _vel_desired.z;
-    }
+    // // add feed forward component
+    // if (_flags.use_desvel_ff_z) {
+    //     _vel_target.z += _vel_desired.z;
+    // }
+    _vel_target.z = _vel_desired.z;
 
     // the following section calculates acceleration required to achieve the velocity target
 
@@ -586,6 +587,8 @@ void AC_PosControl::run_z_controller()
 
     printf("Vertical desired velocity in NEU\n");
     printf("Vz desired: %.2f cm/s\n", _vel_desired.z);
+    printf("Vertical target velocity in NEU\n");
+    printf("Vz target: %.2f cm/s\n", _vel_target.z);
     printf("Vertical estimated velocity in NEU\n");
     printf("Vz estimate: %.2f cm/s\n", curr_vel.z); 
 
@@ -1062,6 +1065,11 @@ void AC_PosControl::run_xy_controller(float dt)
         _vehicle_horiz_vel.y = _inav.get_velocity().y;
     }
 
+    // rotate estomated velocity into body forward-right frame
+    // todo: this should probably be based on the desired heading not the current heading
+    _vehicle_horiz_vel.x =  _vehicle_horiz_vel.x  * _ahrs.cos_yaw() + _vehicle_horiz_vel.y * _ahrs.sin_yaw();
+    _vehicle_horiz_vel.y = -_vehicle_horiz_vel.x  * _ahrs.sin_yaw() + _vehicle_horiz_vel.y * _ahrs.cos_yaw();
+
 
     printf("Horizontal target velocity in NEU:\n");
     printf("Vx target: %.2f cm/s\n", _vel_target.x);
@@ -1074,6 +1082,10 @@ void AC_PosControl::run_xy_controller(float dt)
     _vel_error.x = _vel_target.x - _vehicle_horiz_vel.x;
     _vel_error.y = _vel_target.y - _vehicle_horiz_vel.y;
     // TODO: constrain velocity error and velocity target
+
+    printf("Horizontal estimated errors in NEU:\n");
+    printf("Vx error: %.2f cm/s\n", _vel_error.x);
+    printf("Vy error: %.2f cm/s\n", _vel_error.y); 
 
     // call pi controller
     _pid_vel_xy.set_input(_vel_error);
@@ -1093,8 +1105,8 @@ void AC_PosControl::run_xy_controller(float dt)
     vel_xy_d = _pid_vel_xy.get_d();
 
     // acceleration to correct for velocity error and scale PID output to compensate for optical flow measurement induced EKF noise
-    accel_target.x = (vel_xy_p.x + vel_xy_i.x + vel_xy_d.x) * ekfNavVelGainScaler;
-    accel_target.y = (vel_xy_p.y + vel_xy_i.y + vel_xy_d.y) * ekfNavVelGainScaler;
+    accel_target.x = (vel_xy_p.x + vel_xy_i.x + vel_xy_d.x); //* ekfNavVelGainScaler;
+    accel_target.y = (vel_xy_p.y + vel_xy_i.y + vel_xy_d.y); //* ekfNavVelGainScaler;
 
     printf("PIDx terms:\n");
     printf("Px term: %.2f\n", vel_xy_p.x);
@@ -1106,23 +1118,33 @@ void AC_PosControl::run_xy_controller(float dt)
     printf("Iy term: %.2f\n", vel_xy_i.y);
     printf("Dy term: %.2f\n", vel_xy_d.y);
 
-    // reset accel to current desired acceleration
-    if (_flags.reset_accel_to_lean_xy) {
-        _accel_target_filter.reset(Vector2f(accel_target.x, accel_target.y));
-        _flags.reset_accel_to_lean_xy = false;
-    }
 
-    // filter correction acceleration
-    _accel_target_filter.set_cutoff_frequency(MIN(_accel_xy_filt_hz, 5.0f * ekfNavVelGainScaler));
-    _accel_target_filter.apply(accel_target, dt);
 
-    // pass the correction acceleration to the target acceleration output
-    _accel_target.x = _accel_target_filter.get().x;
-    _accel_target.y = _accel_target_filter.get().y;
 
-    // Add feed forward into the target acceleration output
-    _accel_target.x += _accel_desired.x;
-    _accel_target.y += _accel_desired.y;
+    // // reset accel to current desired acceleration
+    // if (_flags.reset_accel_to_lean_xy) {
+    //     _accel_target_filter.reset(Vector2f(accel_target.x, accel_target.y));
+    //     _flags.reset_accel_to_lean_xy = false;
+    // }
+
+    // // filter correction acceleration
+    // _accel_target_filter.set_cutoff_frequency(MIN(_accel_xy_filt_hz, 5.0f * ekfNavVelGainScaler));
+    // _accel_target_filter.apply(accel_target, dt);
+
+    // // pass the correction acceleration to the target acceleration output
+    // _accel_target.x = _accel_target_filter.get().x;
+    // _accel_target.y = _accel_target_filter.get().y;
+
+    // // Add feed forward into the target acceleration output
+    // _accel_target.x += _accel_desired.x;
+    // _accel_target.y += _accel_desired.y;
+
+    _accel_target.x = accel_target.x;
+    _accel_target.y = accel_target.y;
+
+    printf("control input:\n");
+    printf("accel_x: %.2f\n", _accel_target.x);
+    printf("acceL_y: %.2f\n", _accel_target.y);
 
     // send control input to motors
     _motors.set_forward(_accel_target.x);
