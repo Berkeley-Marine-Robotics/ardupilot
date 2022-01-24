@@ -929,9 +929,9 @@ void AC_PosControl::init_vel_controller_xyz()
     set_alt_target(_inav.get_altitude());
     
 
-    // move current vehicle velocity into feed forward velocity
-    const Vector3f& curr_vel = _inav.get_velocity();
-    set_desired_velocity(curr_vel);
+    // move current vehicle velocity into feed forward velocity -> Desired velocity set in control_poshold
+    // const Vector3f& curr_vel = _inav.get_velocity();
+    // set_desired_velocity(curr_vel);
 
     // set vehicle acceleration to zero
     set_desired_accel_xy(0.0f, 0.0f);
