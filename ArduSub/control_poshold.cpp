@@ -152,5 +152,14 @@ void Sub::poshold_set_velocity(const Vector3f& velocity)
     pos_control.set_desired_velocity(velocity);
 }
 
+void Sub::poshold_send_dvl(const float& dt, const Vector3f &delAng, 
+    const Vector3f &delPos,float quality)
+{
+    // DIRECT DVL MEASUREMENTS
+    // Vector3f meas_velocity = Vector3f(delPos.x/dt, delPos.y/dt, delPos.z/dt);
+    // pos_control.set_vehicle_velocity(meas_velocity);
+
+}
+
 
 #endif  // POSHOLD_ENABLED == ENABLED

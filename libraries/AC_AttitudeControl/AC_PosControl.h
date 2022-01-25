@@ -230,6 +230,9 @@ public:
     ///     when update_vel_controller_xyz is next called the position target is moved based on the desired velocity
     void set_desired_velocity(const Vector3f &des_vel) { _vel_desired = des_vel; }
 
+    // Set vehicle velocity
+    void set_vehicle_velocity(const Vector3f &meas_vel);
+
     // overrides the velocity process variable for one timestep
     void override_vehicle_velocity_xy(const Vector2f& vel_xy) { _vehicle_horiz_vel = vel_xy; _flags.vehicle_horiz_vel_override = true; }
 
@@ -419,6 +422,7 @@ protected:
     Vector3f    _accel_target;          // acceleration target in cm/s/s
     Vector3f    _accel_error;           // acceleration error in cm/s/s
     Vector2f    _vehicle_horiz_vel;     // velocity to use if _flags.vehicle_horiz_vel_override is set
+    float       _vehicle_vert_vel;      // vehicle vertical velocity     
     LowPassFilterFloat _vel_error_filter;   // low-pass-filter on z-axis velocity error
 
     LowPassFilterVector2f _accel_target_filter; // acceleration target filter

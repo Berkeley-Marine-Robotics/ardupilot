@@ -658,6 +658,25 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         break;
     }
 
+    // Send DVL data to PosHold
+    case MAVLINK_MSG_ID_VISION_POSITION_DELTA: {
+
+        // decode message
+        mavlink_vision_position_delta_t packet;
+        mavlink_msg_vision_position_delta_decode(&msg, &packet);
+        const float time_delta_sec = packet.time_delta_usec / 1000000.0f;
+        Vector3f angle_delta = Vector3f(packet.angle_delta[0], packet.angle_delta[1], packet.angle_delta[2]);
+        Vector3f position_delta = Vector3f(packet.position_delta[0], packet.position_delta[1], packet.position_delta[2]);
+
+
+        sub.poshold_send_dvl(time_delta_sec, 
+            angle_delta,
+            position_delta,
+            packet.confidence);
+
+        break;
+    }
+
     case MAVLINK_MSG_ID_SET_POSITION_TARGET_GLOBAL_INT: {  // MAV ID: 86
         // decode packet
         mavlink_set_position_target_global_int_t packet;

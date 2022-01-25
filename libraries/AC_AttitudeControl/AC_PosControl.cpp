@@ -583,14 +583,18 @@ void AC_PosControl::run_z_controller()
 
     // the following section calculates acceleration required to achieve the velocity target
 
+    // EKF
     const Vector3f& curr_vel = _inav.get_velocity();
+    float curr_vel_z = curr_vel.z;
+    // DIRECT DVL
+    // float curr_vel_z = _vehicle_vert_vel;
 
     printf("Vertical desired velocity in NEU\n");
     printf("Vz desired: %.2f cm/s\n", _vel_desired.z);
     printf("Vertical target velocity in NEU\n");
     printf("Vz target: %.2f cm/s\n", _vel_target.z);
     printf("Vertical estimated velocity in NEU\n");
-    printf("Vz estimate: %.2f cm/s\n", curr_vel.z); 
+    printf("Vz estimate: %.2f cm/s\n", curr_vel_z); 
 
 
     // TODO: remove velocity derivative calculation
@@ -622,7 +626,7 @@ void AC_PosControl::run_z_controller()
         _flags.reset_rate_to_accel_z = false;
     } else {
         // calculate rate error and filter with cut off frequency of 2 Hz
-        _vel_error.z = _vel_error_filter.apply(_vel_target.z - curr_vel.z, _dt);
+        _vel_error.z = _vel_error_filter.apply(_vel_target.z - curr_vel_z, _dt);
     }
 
     _accel_target.z = _p_vel_z.get_p(_vel_error.z);
@@ -1010,6 +1014,15 @@ void AC_PosControl::desired_vel_to_pos(float nav_dt)
     }
 }
 
+// Set vehicle velocity from DVL
+void AC_PosControl::set_vehicle_velocity(const Vector3f &meas_vel)
+{
+    _vehicle_horiz_vel.x = meas_vel.x;
+    _vehicle_horiz_vel.y = meas_vel.y;
+    _vehicle_vert_vel = meas_vel.z;
+
+}
+
 /// run horizontal position controller correcting position and velocity
 ///     converts position (_pos_target) to target velocity (_vel_target)
 ///     desired velocity (_vel_desired) is combined into final target velocity
@@ -1057,21 +1070,25 @@ void AC_PosControl::run_xy_controller(float dt)
 
     Vector2f accel_target, vel_xy_p, vel_xy_i, vel_xy_d;
 
-    // check if vehicle velocity is being overridden
-    if (_flags.vehicle_horiz_vel_override) {
-        _flags.vehicle_horiz_vel_override = false;
-    } else {
-        _vehicle_horiz_vel.x = _inav.get_velocity().x;
-        _vehicle_horiz_vel.y = _inav.get_velocity().y;
-    }
+    // // check if vehicle velocity is being overridden
+    // if (_flags.vehicle_horiz_vel_override) {
+    //     _flags.vehicle_horiz_vel_override = false;
+    // } else {
+    //     _vehicle_horiz_vel.x = _inav.get_velocity().x;
+    //     _vehicle_horiz_vel.y = _inav.get_velocity().y;
+    // }
 
     // rotate estomated velocity into body forward-right frame
-    // todo: this should probably be based on the desired heading not the current heading
     float vel_x;
     float vel_y;
+    // EKF
+    _vehicle_horiz_vel.x = _inav.get_velocity().x;
+    _vehicle_horiz_vel.y = _inav.get_velocity().y;
     vel_x =  _vehicle_horiz_vel.x  * _ahrs.cos_yaw() + _vehicle_horiz_vel.y * _ahrs.sin_yaw();
     vel_y = -_vehicle_horiz_vel.x  * _ahrs.sin_yaw() + _vehicle_horiz_vel.y * _ahrs.cos_yaw();
-
+    // DIRECT DVL
+    // vel_x =  _vehicle_horiz_vel.x 
+    // vel_y =  _vehicle_horiz_vel.y
 
     printf("Horizontal target velocity in body frame:\n");
     printf("Vx target: %.2f cm/s\n", _vel_target.x);
@@ -1081,8 +1098,8 @@ void AC_PosControl::run_xy_controller(float dt)
     printf("Vy estimate: %.2f cm/s\n", vel_y);    
 
     // calculate velocity error
-    _vel_error.x = _vel_target.x - vel_x; //_vehicle_horiz_vel.x;
-    _vel_error.y = _vel_target.y - vel_y; // _vehicle_horiz_vel.y;
+    _vel_error.x = _vel_target.x - vel_x;
+    _vel_error.y = _vel_target.y - vel_y;
     // TODO: constrain velocity error and velocity target
 
     printf("Horizontal estimated errors in NEU:\n");
