@@ -1067,20 +1067,22 @@ void AC_PosControl::run_xy_controller(float dt)
 
     // rotate estomated velocity into body forward-right frame
     // todo: this should probably be based on the desired heading not the current heading
-    _vehicle_horiz_vel.x =  _vehicle_horiz_vel.x  * _ahrs.cos_yaw() + _vehicle_horiz_vel.y * _ahrs.sin_yaw();
-    _vehicle_horiz_vel.y = -_vehicle_horiz_vel.x  * _ahrs.sin_yaw() + _vehicle_horiz_vel.y * _ahrs.cos_yaw();
+    float vel_x;
+    float vel_y;
+    vel_x =  _vehicle_horiz_vel.x  * _ahrs.cos_yaw() + _vehicle_horiz_vel.y * _ahrs.sin_yaw();
+    vel_y = -_vehicle_horiz_vel.x  * _ahrs.sin_yaw() + _vehicle_horiz_vel.y * _ahrs.cos_yaw();
 
 
-    printf("Horizontal target velocity in NEU:\n");
+    printf("Horizontal target velocity in body frame:\n");
     printf("Vx target: %.2f cm/s\n", _vel_target.x);
     printf("Vy target: %.2f cm/s\n", _vel_target.y);
-    printf("Horizontal estimated velocity in NEU:\n");
-    printf("Vx estimate: %.2f cm/s\n", _vehicle_horiz_vel.x);
-    printf("Vy estimate: %.2f cm/s\n", _vehicle_horiz_vel.y);    
+    printf("Horizontal estimated velocity in body frame:\n");
+    printf("Vx estimate: %.2f cm/s\n", vel_x);
+    printf("Vy estimate: %.2f cm/s\n", vel_y);    
 
     // calculate velocity error
-    _vel_error.x = _vel_target.x - _vehicle_horiz_vel.x;
-    _vel_error.y = _vel_target.y - _vehicle_horiz_vel.y;
+    _vel_error.x = _vel_target.x - vel_x; //_vehicle_horiz_vel.x;
+    _vel_error.y = _vel_target.y - vel_y; // _vehicle_horiz_vel.y;
     // TODO: constrain velocity error and velocity target
 
     printf("Horizontal estimated errors in NEU:\n");
