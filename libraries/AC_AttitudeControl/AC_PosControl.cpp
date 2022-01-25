@@ -1124,8 +1124,9 @@ void AC_PosControl::run_xy_controller(float dt)
     vel_xy_d = _pid_vel_xy.get_d();
 
     // acceleration to correct for velocity error and scale PID output to compensate for optical flow measurement induced EKF noise
-    accel_target.x = (vel_xy_p.x + vel_xy_i.x + vel_xy_d.x); //* ekfNavVelGainScaler;
-    accel_target.y = (vel_xy_p.y + vel_xy_i.y + vel_xy_d.y); //* ekfNavVelGainScaler;
+    ekfNavVelGainScaler = 0.1f;
+    accel_target.x = (vel_xy_p.x + vel_xy_i.x + vel_xy_d.x)* ekfNavVelGainScaler;
+    accel_target.y = (vel_xy_p.y + vel_xy_i.y + vel_xy_d.y)* ekfNavVelGainScaler;
 
     printf("PIDx terms:\n");
     printf("Px term: %.2f\n", vel_xy_p.x);
