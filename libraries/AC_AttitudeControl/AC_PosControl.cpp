@@ -511,11 +511,11 @@ void AC_PosControl::update_z_controller()
     }
     _last_update_z_us = now_us;
 
-    // check for ekf altitude reset
-    check_for_ekf_z_reset();
+    // // check for ekf altitude reset
+    // check_for_ekf_z_reset();
 
-    // check if leash lengths need to be recalculated
-    calc_leash_length_z();
+    // // check if leash lengths need to be recalculated
+    // calc_leash_length_z();
 
     // call z-axis position controller
     run_z_controller();
@@ -538,42 +538,42 @@ void AC_PosControl::calc_leash_length_z()
 // vel_up_max, vel_down_max should have already been set before calling this method
 void AC_PosControl::run_z_controller()
 {
-    float curr_alt = _inav.get_altitude();
+    // float curr_alt = _inav.get_altitude();
 
-    // clear position limit flags
-    _limit.pos_up = false;
-    _limit.pos_down = false;
+    // // clear position limit flags
+    // _limit.pos_up = false;
+    // _limit.pos_down = false;
 
-    // calculate altitude error
-    _pos_error.z = _pos_target.z - curr_alt;
+    // // calculate altitude error
+    // _pos_error.z = _pos_target.z - curr_alt;
 
-    // do not let target altitude get too far from current altitude
-    if (_pos_error.z > _leash_up_z) {
-        _pos_target.z = curr_alt + _leash_up_z;
-        _pos_error.z = _leash_up_z;
-        _limit.pos_up = true;
-    }
-    if (_pos_error.z < -_leash_down_z) {
-        _pos_target.z = curr_alt - _leash_down_z;
-        _pos_error.z = -_leash_down_z;
-        _limit.pos_down = true;
-    }
+    // // do not let target altitude get too far from current altitude
+    // if (_pos_error.z > _leash_up_z) {
+    //     _pos_target.z = curr_alt + _leash_up_z;
+    //     _pos_error.z = _leash_up_z;
+    //     _limit.pos_up = true;
+    // }
+    // if (_pos_error.z < -_leash_down_z) {
+    //     _pos_target.z = curr_alt - _leash_down_z;
+    //     _pos_error.z = -_leash_down_z;
+    //     _limit.pos_down = true;
+    // }
 
-    // calculate _vel_target.z using from _pos_error.z using sqrt controller
-    _vel_target.z = AC_AttitudeControl::sqrt_controller(_pos_error.z, _p_pos_z.kP(), _accel_z_cms, _dt);
+    // // calculate _vel_target.z using from _pos_error.z using sqrt controller
+    // _vel_target.z = AC_AttitudeControl::sqrt_controller(_pos_error.z, _p_pos_z.kP(), _accel_z_cms, _dt);
 
-    // check speed limits
-    // To-Do: check these speed limits here or in the pos->rate controller
-    _limit.vel_up = false;
-    _limit.vel_down = false;
-    if (_vel_target.z < _speed_down_cms) {
-        _vel_target.z = _speed_down_cms;
-        _limit.vel_down = true;
-    }
-    if (_vel_target.z > _speed_up_cms) {
-        _vel_target.z = _speed_up_cms;
-        _limit.vel_up = true;
-    }
+    // // check speed limits
+    // // To-Do: check these speed limits here or in the pos->rate controller
+    // _limit.vel_up = false;
+    // _limit.vel_down = false;
+    // if (_vel_target.z < _speed_down_cms) {
+    //     _vel_target.z = _speed_down_cms;
+    //     _limit.vel_down = true;
+    // }
+    // if (_vel_target.z > _speed_up_cms) {
+    //     _vel_target.z = _speed_up_cms;
+    //     _limit.vel_up = true;
+    // }
 
     // // add feed forward component
     // if (_flags.use_desvel_ff_z) {
@@ -589,86 +589,91 @@ void AC_PosControl::run_z_controller()
     // DIRECT DVL
     // float curr_vel_z = _vehicle_vert_vel;
 
-    printf("Vertical desired velocity in NEU\n");
-    printf("Vz desired: %.2f cm/s\n", _vel_desired.z);
     printf("Vertical target velocity in NEU\n");
     printf("Vz target: %.2f cm/s\n", _vel_target.z);
     printf("Vertical estimated velocity in NEU\n");
     printf("Vz estimate: %.2f cm/s\n", curr_vel_z); 
 
 
-    // TODO: remove velocity derivative calculation
-    // reset last velocity target to current target
-    if (_flags.reset_rate_to_accel_z) {
-        _vel_last.z = _vel_target.z;
-    }
+    // // TODO: remove velocity derivative calculation
+    // // reset last velocity target to current target
+    // if (_flags.reset_rate_to_accel_z) {
+    //     _vel_last.z = _vel_target.z;
+    // }
 
-    // feed forward desired acceleration calculation
-    if (_dt > 0.0f) {
-        if (!_flags.freeze_ff_z) {
-            _accel_desired.z = (_vel_target.z - _vel_last.z) / _dt;
-        } else {
-            // stop the feed forward being calculated during a known discontinuity
-            _flags.freeze_ff_z = false;
-        }
-    } else {
-        _accel_desired.z = 0.0f;
-    }
+    // // feed forward desired acceleration calculation
+    // if (_dt > 0.0f) {
+    //     if (!_flags.freeze_ff_z) {
+    //         _accel_desired.z = (_vel_target.z - _vel_last.z) / _dt;
+    //     } else {
+    //         // stop the feed forward being calculated during a known discontinuity
+    //         _flags.freeze_ff_z = false;
+    //     }
+    // } else {
+    //     _accel_desired.z = 0.0f;
+    // }
 
-    // store this iteration's velocities for the next iteration
-    _vel_last.z = _vel_target.z;
+    // // store this iteration's velocities for the next iteration
+    // _vel_last.z = _vel_target.z;
 
-    // reset velocity error and filter if this controller has just been engaged
-    if (_flags.reset_rate_to_accel_z) {
-        // Reset Filter
-        _vel_error.z = 0;
-        _vel_error_filter.reset(0);
-        _flags.reset_rate_to_accel_z = false;
-    } else {
-        // calculate rate error and filter with cut off frequency of 2 Hz
-        _vel_error.z = _vel_error_filter.apply(_vel_target.z - curr_vel_z, _dt);
-    }
+    // // reset velocity error and filter if this controller has just been engaged
+    // if (_flags.reset_rate_to_accel_z) {
+    //     // Reset Filter
+    //     _vel_error.z = 0;
+    //     _vel_error_filter.reset(0);
+    //     _flags.reset_rate_to_accel_z = false;
+    // } else {
+    //     // calculate rate error and filter with cut off frequency of 2 Hz
+    //     _vel_error.z = _vel_error_filter.apply(_vel_target.z - curr_vel_z, _dt);
+    // }
 
+    _vel_error.z = _vel_target.z - curr_vel_z;
     _accel_target.z = _p_vel_z.get_p(_vel_error.z);
 
-    _accel_target.z += _accel_desired.z;
+    // _accel_target.z += _accel_desired.z;
 
 
-    // the following section calculates a desired throttle needed to achieve the acceleration target
-    float z_accel_meas;         // actual acceleration
+//     // the following section calculates a desired throttle needed to achieve the acceleration target
+//     float z_accel_meas;         // actual acceleration
 
-    // Calculate Earth Frame Z acceleration
-    z_accel_meas = -(_ahrs.get_accel_ef_blended().z + GRAVITY_MSS) * 100.0f;
+//     // Calculate Earth Frame Z acceleration
+//     z_accel_meas = -(_ahrs.get_accel_ef_blended().z + GRAVITY_MSS) * 100.0f;
 
-    // ensure imax is always large enough to overpower hover throttle
-    if (_motors.get_throttle_hover() * 1000.0f > _pid_accel_z.imax()) {
-        _pid_accel_z.imax(_motors.get_throttle_hover() * 1000.0f);
-    }
+//     // ensure imax is always large enough to overpower hover throttle
+//     if (_motors.get_throttle_hover() * 1000.0f > _pid_accel_z.imax()) {
+//         _pid_accel_z.imax(_motors.get_throttle_hover() * 1000.0f);
+//     }
 
-    float thr_out;
-    if (_vibe_comp_enabled) {
-        _flags.freeze_ff_z = true;
-        _accel_desired.z = 0.0f;
-        const float thr_per_accelz_cmss = _motors.get_throttle_hover() / (GRAVITY_MSS * 100.0f);
-        // during vibration compensation use feed forward with manually calculated gain
-        // ToDo: clear pid_info P, I and D terms for logging
-        if (!(_motors.limit.throttle_lower || _motors.limit.throttle_upper) || ((is_positive(_pid_accel_z.get_i()) && is_negative(_vel_error.z)) || (is_negative(_pid_accel_z.get_i()) && is_positive(_vel_error.z)))) {
-            _pid_accel_z.set_integrator(_pid_accel_z.get_i() + _dt * thr_per_accelz_cmss * 1000.0f * _vel_error.z * _p_vel_z.kP() * POSCONTROL_VIBE_COMP_I_GAIN);
-        }
-        thr_out = POSCONTROL_VIBE_COMP_P_GAIN * thr_per_accelz_cmss * _accel_target.z + _pid_accel_z.get_i() * 0.001f;
-    } else {
-        thr_out = _pid_accel_z.update_all(_accel_target.z, z_accel_meas, (_motors.limit.throttle_lower || _motors.limit.throttle_upper)) * 0.001f;
-    }
-    thr_out += _motors.get_throttle_hover();
+//     float thr_out;
+//     if (_vibe_comp_enabled) {
+//         _flags.freeze_ff_z = true;
+//         _accel_desired.z = 0.0f;
+//         const float thr_per_accelz_cmss = _motors.get_throttle_hover() / (GRAVITY_MSS * 100.0f);
+//         // during vibration compensation use feed forward with manually calculated gain
+//         // ToDo: clear pid_info P, I and D terms for logging
+//         if (!(_motors.limit.throttle_lower || _motors.limit.throttle_upper) || ((is_positive(_pid_accel_z.get_i()) && is_negative(_vel_error.z)) || (is_negative(_pid_accel_z.get_i()) && is_positive(_vel_error.z)))) {
+//             _pid_accel_z.set_integrator(_pid_accel_z.get_i() + _dt * thr_per_accelz_cmss * 1000.0f * _vel_error.z * _p_vel_z.kP() * POSCONTROL_VIBE_COMP_I_GAIN);
+//         }
+//         thr_out = POSCONTROL_VIBE_COMP_P_GAIN * thr_per_accelz_cmss * _accel_target.z + _pid_accel_z.get_i() * 0.001f;
+//     } else {
+//         thr_out = _pid_accel_z.update_all(_accel_target.z, z_accel_meas, (_motors.limit.throttle_lower || _motors.limit.throttle_upper)) * 0.001f;
+//     }
+//     thr_out += _motors.get_throttle_hover();
 
+    float thr_out = _accel_target.z + _motors.get_throttle_hover();
     // send throttle to attitude controller with angle boost
     _attitude_control.set_throttle_out(thr_out, true, POSCONTROL_THROTTLE_CUTOFF_FREQ);
 
-    // _speed_down_cms is checked to be non-zero when set
-    float error_ratio = _vel_error.z/_speed_down_cms;
+    printf("Pz terms:\n");
+    printf("thr_out: %.2f\n", thr_out);
 
-    _vel_z_control_ratio += _dt*0.1f*(0.5-error_ratio);
-    _vel_z_control_ratio = constrain_float(_vel_z_control_ratio, 0.0f, 2.0f);
+//     // _speed_down_cms is checked to be non-zero when set
+//     float error_ratio = _vel_error.z/_speed_down_cms;
+
+//     _vel_z_control_ratio += _dt*0.1f*(0.5-error_ratio);
+//     _vel_z_control_ratio = constrain_float(_vel_z_control_ratio, 0.0f, 2.0f);
+
+
 }
 
 ///
