@@ -9,28 +9,43 @@
 // poshold_init - initialise PosHold controller
 bool Sub::poshold_init()
 {
-    // fail to initialise PosHold mode if no GPS lock
-    if (!position_ok()) {
-        return false;
-    }
-    pos_control.init_vel_controller_xyz();
-    pos_control.set_desired_velocity_xy(0, 0);
-    pos_control.set_target_to_stopping_point_xy();
 
-    // initialize vertical speeds and acceleration
-    pos_control.set_max_speed_z(-get_pilot_speed_dn(), g.pilot_speed_up);
-    pos_control.set_max_accel_z(g.pilot_accel_z);
+    //// From PosHold mode
+    // // fail to initialise PosHold mode if no GPS lock
+    // if (!position_ok()) {
+    //     return false;
+    // }
+    // pos_control.init_vel_controller_xyz();
+    // pos_control.set_desired_velocity_xy(0, 0);
+    // pos_control.set_target_to_stopping_point_xy();
 
-    // initialise position and desired velocity
-    pos_control.set_alt_target(inertial_nav.get_altitude());
-    pos_control.set_desired_velocity_z(inertial_nav.get_velocity_z());
+    // // initialize vertical speeds and acceleration
+    // pos_control.set_max_speed_z(-get_pilot_speed_dn(), g.pilot_speed_up);
+    // pos_control.set_max_accel_z(g.pilot_accel_z);
+
+    // // initialise position and desired velocity
+    // pos_control.set_alt_target(inertial_nav.get_altitude());
+    // pos_control.set_desired_velocity_z(inertial_nav.get_velocity_z());
 
     // Stop all thrusters
-    attitude_control.set_throttle_out(0.5f ,true, g.throttle_filt);
-    attitude_control.relax_attitude_controllers();
-    pos_control.relax_alt_hold_controllers();
+    // attitude_control.set_throttle_out(0.5f ,true, g.throttle_filt);
 
+    // pos_control.relax_alt_hold_controllers();
+
+    // Attitude control initialization
+    attitude_control.relax_attitude_controllers();
     last_pilot_heading = ahrs.yaw_sensor;
+
+    //// From Manual mode
+    // set target altitude to zero for reporting
+    // pos_control.set_alt_target(0);
+
+    // attitude hold inputs become thrust inputs in manual mode
+    // set to neutral to prevent chaotic behavior (esp. roll/pitch)
+    set_neutral_controls();
+
+    //// PID initialization
+    // TBD...
 
     return true;
 }
@@ -44,10 +59,10 @@ void Sub::poshold_run()
     if (!motors.armed()) {
         motors.set_desired_spool_state(AP_Motors::DesiredSpoolState::GROUND_IDLE);
         // Sub vehicles do not stabilize roll/pitch/yaw when not auto-armed (i.e. on the ground, pilot has never raised throttle)
-        attitude_control.set_throttle_out(0.5f ,true, g.throttle_filt);
+        attitude_control.set_throttle_out(0.5f ,true, g.throttle_filt); // 0 in Manual mode??
         attitude_control.relax_attitude_controllers();
-        pos_control.set_target_to_stopping_point_xy();
-        pos_control.relax_alt_hold_controllers();
+        // pos_control.set_target_to_stopping_point_xy();
+        // pos_control.relax_alt_hold_controllers();
         last_pilot_heading = ahrs.yaw_sensor;
         return;
     }
@@ -55,30 +70,62 @@ void Sub::poshold_run()
     // set motors to full range
     motors.set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
-    ///////////////////////
-    // update xy outputs //
+
+    // XYZ control
     float pilot_lateral = channel_lateral->norm_input();
     float pilot_forward = channel_forward->norm_input();
+    float pilot_down = channel_throttle->norm_input();
 
-    float lateral_out = 0;
-    float forward_out = 0;
+    if (fabsf(pilot_lateral) > 0.05f || fabsf(pilot_forward) > 0.05f || fabsf(pilot_down) > 0.05f) {
+        /// Pilot override
+        motors.set_throttle(pilot_down);
+        motors.set_forward(pilot_forward);
+        motors.set_lateral(pilot_lateral);
+    } else{
+        //// Velocity control
+        // Get target velocity
 
-    pos_control.set_desired_velocity_xy(0,0);
+        // Get measured velocity
 
-    if (position_ok()) {
-        // Allow pilot to reposition the sub
-        if (fabsf(pilot_lateral) > 0.1 || fabsf(pilot_forward) > 0.1) {
-            pos_control.set_target_to_stopping_point_xy();
-        }
-        translate_pos_control_rp(lateral_out, forward_out);
-        pos_control.update_xy_controller();
-    } else {
-        pos_control.init_vel_controller_xyz();
-        pos_control.set_desired_velocity_xy(0, 0);
-        pos_control.set_target_to_stopping_point_xy();
+        // PID Control
+        Vector3f tau;
+        // TBD...
+
+
+        // Send Control to motors -> Overriden by attitude control??
+        motors.set_throttle(tau.z);
+        motors.set_forward(tau.x);
+        motors.set_lateral(tau.y);
+
     }
-    motors.set_forward(forward_out + pilot_forward);
-    motors.set_lateral(lateral_out + pilot_lateral);
+
+
+
+
+    ///////////////////////
+    // // update xy outputs //
+    // float pilot_lateral = channel_lateral->norm_input();
+    // float pilot_forward = channel_forward->norm_input();
+
+    // float lateral_out = 0;
+    // float forward_out = 0;
+
+    // pos_control.set_desired_velocity_xy(0,0);
+
+    // if (position_ok()) {
+    //     // Allow pilot to reposition the sub
+    //     if (fabsf(pilot_lateral) > 0.1 || fabsf(pilot_forward) > 0.1) {
+    //         pos_control.set_target_to_stopping_point_xy();
+    //     }
+    //     translate_pos_control_rp(lateral_out, forward_out);
+    //     pos_control.update_xy_controller();
+    // } else {
+    //     pos_control.init_vel_controller_xyz();
+    //     pos_control.set_desired_velocity_xy(0, 0);
+    //     pos_control.set_target_to_stopping_point_xy();
+    // }
+    // motors.set_forward(forward_out + pilot_forward);
+    // motors.set_lateral(lateral_out + pilot_lateral);
     /////////////////////
     // Update attitude //
 
@@ -112,7 +159,7 @@ void Sub::poshold_run()
         }
     }
 
-    // Update z axis //
-    control_depth();
+    // // Update z axis //
+    // control_depth();
 }
 #endif  // POSHOLD_ENABLED == ENABLED
