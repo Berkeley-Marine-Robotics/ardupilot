@@ -23,8 +23,8 @@ bool Sub::poshold_init()
 
     // initialise position and desired velocity
     pos_control.set_alt_target(inertial_nav.get_altitude()); //-> Not needed
-    pos_control.set_desired_velocity_z(inertial_nav.get_velocity_z()); //-> initialize to 0
-    //pos_control.set_desired_velocity_z(0);
+    // pos_control.set_desired_velocity_z(inertial_nav.get_velocity_z()); //-> initialize to 0
+    pos_control.set_desired_velocity_z(0);
 
     // Stop all thrusters
     attitude_control.set_throttle_out(0.5f ,true, g.throttle_filt);
@@ -71,6 +71,7 @@ void Sub::poshold_run()
     } else { // hold speed
         pos_control.update_xy_controller();      
     }   
+
 
     // ///////////////////////
     // // OLD update xy outputs //
@@ -135,7 +136,7 @@ void Sub::poshold_run()
 
     // =========================== Tests D2, D3, ..., D14 ==============
     // Update z axis //
-    control_depth();
+    // control_depth();
     // =================================================================
 }
 // guided_set_velocity - sets guided mode's target velocity

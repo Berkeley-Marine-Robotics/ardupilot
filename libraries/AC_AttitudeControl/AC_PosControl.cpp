@@ -660,7 +660,7 @@ void AC_PosControl::run_z_controller()
 //     }
 //     thr_out += _motors.get_throttle_hover();
 
-    float thr_out = _accel_target.z + _motors.get_throttle_hover();
+    float thr_out = _accel_target.z + 0.5f;//_motors.get_throttle_hover();
     // send throttle to attitude controller with angle boost
     _attitude_control.set_throttle_out(thr_out, true, POSCONTROL_THROTTLE_CUTOFF_FREQ);
 
