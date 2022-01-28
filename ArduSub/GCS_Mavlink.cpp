@@ -584,13 +584,13 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED: {   // MAV ID: 84
+case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED: {   // MAV ID: 84
         // decode packet
         mavlink_set_position_target_local_ned_t packet;
         mavlink_msg_set_position_target_local_ned_decode(&msg, &packet);
 
         // exit if vehicle is not in Guided mode or Auto-Guided mode
-        if ((sub.control_mode != GUIDED) && !(sub.control_mode == AUTO && sub.auto_mode == Auto_NavGuided)) {
+        if ((sub.control_mode != GUIDED) && !(sub.control_mode == AUTO && sub.auto_mode == Auto_NavGuided) && sub.control_mode != POSHOLD) {
             break;
         }
 
@@ -604,7 +604,7 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
 
         bool pos_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_POS_IGNORE;
         bool vel_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_VEL_IGNORE;
-        bool acc_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_ACC_IGNORE;
+        // bool acc_ignore      = packet.type_mask & MAVLINK_SET_POS_TYPE_MASK_ACC_IGNORE;
 
         /*
          * for future use:
@@ -639,20 +639,40 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         if (!vel_ignore) {
             // convert to cm
             vel_vector = Vector3f(packet.vx * 100.0f, packet.vy * 100.0f, -packet.vz * 100.0f);
-            // rotate to body-frame if necessary
-            if (packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
-                sub.rotate_body_frame_to_NE(vel_vector.x, vel_vector.y);
-            }
+            // // rotate to body-frame if necessary -> KEEP REF VELOCITY IN BODY FRAME
+            // if (packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
+            //     sub.rotate_body_frame_to_NE(vel_vector.x, vel_vector.y);
+            // }
         }
 
         // send request
-        if (!pos_ignore && !vel_ignore && acc_ignore) {
-            sub.guided_set_destination_posvel(pos_vector, vel_vector);
-        } else if (pos_ignore && !vel_ignore && acc_ignore) {
-            sub.guided_set_velocity(vel_vector);
-        } else if (!pos_ignore && vel_ignore && acc_ignore) {
-            sub.guided_set_destination(pos_vector);
-        }
+        sub.poshold_set_velocity(vel_vector);
+        // if (!pos_ignore && !vel_ignore && acc_ignore) {
+        //     sub.guided_set_destination_posvel(pos_vector, vel_vector);
+        // } else if (pos_ignore && !vel_ignore && acc_ignore) {
+        //     sub.guided_set_velocity(vel_vector);
+        // } else if (!pos_ignore && vel_ignore && acc_ignore) {
+        //     sub.guided_set_destination(pos_vector);
+        // }
+
+        break;
+    }
+
+    // Send DVL data to PosHold
+    case MAVLINK_MSG_ID_VISION_POSITION_DELTA: {
+
+        // decode message
+        mavlink_vision_position_delta_t packet;
+        mavlink_msg_vision_position_delta_decode(&msg, &packet);
+        const float time_delta_sec = packet.time_delta_usec / 1000000.0f;
+        Vector3f angle_delta = Vector3f(packet.angle_delta[0], packet.angle_delta[1], packet.angle_delta[2]);
+        Vector3f position_delta = Vector3f(packet.position_delta[0], packet.position_delta[1], packet.position_delta[2]);
+
+
+        sub.poshold_send_dvl(time_delta_sec, 
+            angle_delta,
+            position_delta,
+            packet.confidence);
 
         break;
     }

@@ -70,22 +70,38 @@ void Sub::poshold_run()
     // set motors to full range
     motors.set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
-
     // XYZ control
     float pilot_lateral = channel_lateral->norm_input();
     float pilot_forward = channel_forward->norm_input();
     float pilot_down = channel_throttle->norm_input();
+    printf("Pilot commands\n");
+    printf("forward: %.2f\n", pilot_forward);
+    printf("lateral: %.2f\n", pilot_lateral);
+    printf("down: %.2f\n", pilot_down);
 
-    if (fabsf(pilot_lateral) > 0.05f || fabsf(pilot_forward) > 0.05f || fabsf(pilot_down) > 0.05f) {
+    if (fabsf(pilot_lateral) > 0.05f || fabsf(pilot_forward) > 0.05f || fabsf(pilot_down-0.5f) > 0.05f) {
         /// Pilot override
         motors.set_throttle(pilot_down);
         motors.set_forward(pilot_forward);
         motors.set_lateral(pilot_lateral);
     } else{
         //// Velocity control
-        // Get target velocity
-
+        // Print target velocity
+        printf("Target velocity in body frame:\n");
+        printf("Vx target: %.2f cm/s\n", _vel_target.x);
+        printf("Vy target: %.2f cm/s\n", _vel_target.y);
+        printf("Vz target: %.2f cm/s\n", _vel_target.z);
         // Get measured velocity
+        // EKF
+        float velEKF_x = inertial_nav.get_velocity().x;
+        float velEKF_y = inertial_nav.get_velocity().y;
+        _vel_meas.x =  velEKF_x * ahrs_view.cos_yaw() + velEKF_y * ahrs_view.sin_yaw();
+        _vel_meas.y = -velEKF_x * ahrs_view.sin_yaw() + velEKF_y* ahrs_view.cos_yaw();
+        _vel_meas.z = inertial_nav.get_velocity().z;   
+        printf("Horizontal estimated velocity in body frame:\n");
+        printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
+        printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
+        printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
 
         // PID Control
         Vector3f tau;
@@ -93,10 +109,9 @@ void Sub::poshold_run()
 
 
         // Send Control to motors -> Overriden by attitude control??
-        motors.set_throttle(tau.z);
         motors.set_forward(tau.x);
         motors.set_lateral(tau.y);
-
+        motors.set_throttle(tau.z+0.5f);
     }
 
 
@@ -162,4 +177,23 @@ void Sub::poshold_run()
     // // Update z axis //
     // control_depth();
 }
+
+// Set control target velocity
+void Sub::poshold_set_velocity(const Vector3f& velocity)
+{
+    _vel_target = velocity;
+}
+
+// Get velocity from direct DVL measurements
+void Sub::poshold_send_dvl(const float& dt, const Vector3f &delAng, 
+    const Vector3f &delPos,float quality)
+{
+    // // DIRECT DVL MEASUREMENTS
+    // _vel_meas = Vector3f(delPos.x/dt, delPos.y/dt, delPos.z/dt);
+
+}
+
+
+
+
 #endif  // POSHOLD_ENABLED == ENABLED
