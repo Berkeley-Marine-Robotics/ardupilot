@@ -3,6 +3,7 @@
 // Jacob Walser August 2016
 
 #include "Sub.h"
+#include <cmath>
 
 #if POSHOLD_ENABLED == ENABLED
 
@@ -47,14 +48,41 @@ bool Sub::poshold_init()
     //// PID initialization
     // TBD...
 
+
     return true;
 }
+
+// assign PID gais for each degree-of-freedom
+
+float K_p_x= 200;
+float K_i_x= 20;
+float K_d_x= 20;
+
+float K_p_y= 200;
+float K_i_y= 20;
+float K_d_y= 20;
+
+float K_p_z= 200;
+float K_i_z= 20;
+float K_d_z= 20;
+
+float error_integrator_x = 0;
+float error_integrator_y = 0;
+float error_integrator_z = 0;
+
+float _last_t = 0;
+
+float _last_error_x =  0;
+float _last_error_y =  0;
+float _last_error_z =  0;
 
 // poshold_run - runs the PosHold controller
 // should be called at 100hz or more
 void Sub::poshold_run()
 {
     uint32_t tnow = AP_HAL::millis();
+    uint32_t dt = tnow - _last_t;
+
     // When unarmed, disable motors and stabilization
     if (!motors.armed()) {
         motors.set_desired_spool_state(AP_Motors::DesiredSpoolState::GROUND_IDLE);
@@ -103,19 +131,37 @@ void Sub::poshold_run()
         printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
         printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
 
-        // PID Control
-        Vector3f tau;
-        // TBD...
+        /// PID Control
+        Vector3f error = _vel_target - _vel_meas; 
 
+        error_integrator_x += error.x*dt;
+        error_integrator_y += error.y*dt;
+        error_integrator_z += error.z*dt;
+
+        float error_derivative_x = (error.x - _last_error_x) / dt;
+        float error_derivative_y = (error.y - _last_error_y) / dt;
+        float error_derivative_z = (error.z - _last_error_z) / dt;
+        
+        float tau_x = K_p_x*error.x + K_i_x*error_integrator_x + K_d_x*error_derivative_x;
+        float tau_y = K_p_x*error.y + K_i_y*error_integrator_y + K_d_y*error_derivative_y;
+        float tau_z = K_p_x*error.z + K_i_z*error_integrator_z + K_d_z*error_derivative_z;
+        printf("Control inputs:\n");
+        printf("tau_x: %.2f N\n", tau_x);
+        printf("tau_y: %.2f N\n", tau_y);   
+        printf("tau_z: %.2f N\n", tau_z); 
 
         // Send Control to motors -> Overriden by attitude control??
-        motors.set_forward(tau.x);
-        motors.set_lateral(tau.y);
-        motors.set_throttle(tau.z+0.5f);
+        motors.set_forward(tau_x);
+        motors.set_lateral(tau_y);
+        motors.set_throttle(tau_z+0.5f);
+
+        // Update
+        _last_t= tnow;
+        _last_error_x= error.x;
+        _last_error_y= error.y;
+        _last_error_z= error.z;
+    
     }
-
-
-
 
     ///////////////////////
     // // update xy outputs //
@@ -192,7 +238,6 @@ void Sub::poshold_send_dvl(const float& dt, const Vector3f &delAng,
     // _vel_meas = Vector3f(delPos.x/dt, delPos.y/dt, delPos.z/dt);
 
 }
-
 
 
 
