@@ -23,15 +23,15 @@ AC_VelocityControl::AC_VelocityControl(AP_AHRS_View & ahrs, const AP_InertialNav
         {
            AP_Param::setup_object_defaults(this, var_info);
 
-           K_p_x = Px;
-           K_i_x = Ix;
-           K_d_x = Dx;
-           K_p_y = Py;
-           K_i_y = Iy;
-           K_d_y = Dy;
-           K_p_z = Pz;
-           K_i_z = Iz;
-           K_d_z = Dz;
+           _K_p_x = Px;
+           _K_i_x = Ix;
+           _K_d_x = Dx;
+           _K_p_y = Py;
+           _K_i_y = Iy;
+           _K_d_y = Dy;
+           _K_p_z = Pz;
+           _K_i_z = Iz;
+           _K_d_z = Dz;
         }
 
 

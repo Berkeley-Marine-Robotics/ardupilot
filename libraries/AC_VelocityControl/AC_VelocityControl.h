@@ -54,17 +54,17 @@ protected:
     Vector3f _last_error;
 
     // Gains
-    AP_Float K_p_x;
-    AP_Float K_i_x;
-    AP_Float K_d_x;
+    AP_Float _K_p_x;
+    AP_Float _K_i_x;
+    AP_Float _K_d_x;
 
-    AP_Float K_p_y;
-    AP_Float K_i_y;
-    AP_Float K_d_y;
+    AP_Float _K_p_y;
+    AP_Float _K_i_y;
+    AP_Float _K_d_y;
 
-    AP_Float K_p_z;
-    AP_Float K_i_z;
-    AP_Float K_d_z;
+    AP_Float _K_p_z;
+    AP_Float _K_i_z;
+    AP_Float _K_d_z;
 
 
 
