@@ -153,6 +153,17 @@ public:
         k_param_p_vel_z, // deprecated
         k_param_pid_accel_z, // deprecated
 
+        k_param_K_p_x = 131,
+        k_param_K_i_x,
+        k_param_K_d_x,
+        k_param_K_p_y,
+        k_param_K_i_y,
+        k_param_K_d_y,
+        k_param_K_p_z,
+        k_param_K_i_z,
+        k_param_K_d_z,
+
+
 
         // Failsafes
         k_param_failsafe_gcs = 140,
@@ -246,6 +257,17 @@ public:
     AP_Int16        pilot_speed_up;        // maximum vertical ascending velocity the pilot may request
     AP_Int16        pilot_speed_dn;        // maximum vertical descending velocity the pilot may request
     AP_Int16        pilot_accel_z;               // vertical acceleration the pilot may request
+
+    // PID Control gains
+    AP_Float        K_p_x;
+    AP_Float        K_i_x;
+    AP_Float        K_d_x;
+    AP_Float        K_p_y;
+    AP_Float        K_i_y;
+    AP_Float        K_d_y;
+    AP_Float        K_p_z;
+    AP_Float        K_i_z;
+    AP_Float        K_d_z;
 
     // Throttle
     //

@@ -28,6 +28,78 @@
 
 const AP_Param::Info Sub::var_info[] = {
 
+    // @Param: VELCONTROL_X_P
+    // @DisplayName: PID Control gain
+    // @Description: N/A
+    // @Units: -
+    // @Range: 0 100
+    // @User: Standard
+    GSCALAR(K_p_x, "VELCONTROL_X_P", VELCONTROL_X_P_DEFAULT),
+
+    // @Param: VELCONTROL_X_I
+    // @DisplayName: PID Control gain
+    // @Description: N/A
+    // @Units: -
+    // @Range: 0 100
+    // @User: Standard
+    GSCALAR(K_i_x, "VELCONTROL_X_I", VELCONTROL_X_I_DEFAULT),
+
+    // @Param: VELCONTROL_X_D
+    // @DisplayName: PID Control gain
+    // @Description: N/A
+    // @Units: -
+    // @Range: 0 100
+    // @User: Standard
+    GSCALAR(K_d_x, "VELCONTROL_X_D", VELCONTROL_X_D_DEFAULT),
+
+    // @Param: VELCONTROL_Y_P
+    // @DisplayName: PID Control gain
+    // @Description: N/A
+    // @Units: -
+    // @Range: 0 100
+    // @User: Standard
+    GSCALAR(K_p_y, "VELCONTROL_Y_P", VELCONTROL_Y_P_DEFAULT),
+
+    // @Param: VELCONTROL_Y_I
+    // @DisplayName: PID Control gain
+    // @Description: N/A
+    // @Units: -
+    // @Range: 0 100
+    // @User: Standard
+    GSCALAR(K_i_y, "VELCONTROL_Y_I", VELCONTROL_Y_I_DEFAULT),
+
+    // @Param: VELCONTROL_Y_D
+    // @DisplayName: PID Control gain
+    // @Description: N/A
+    // @Units: -
+    // @Range: 0 100
+    // @User: Standard
+    GSCALAR(K_d_y, "VELCONTROL_Y_D", VELCONTROL_Y_D_DEFAULT),
+
+    // @Param: VELCONTROL_Z_P
+    // @DisplayName: PID Control gain
+    // @Description: N/A
+    // @Units: -
+    // @Range: 0 100
+    // @User: Standard
+    GSCALAR(K_p_z, "VELCONTROL_Z_P", VELCONTROL_Z_P_DEFAULT),
+    // @Param: VELCONTROL_Z_I
+    // @DisplayName: PID Control gain
+    // @Description: N/A
+    // @Units: -
+    // @Range: 0 100
+    // @User: Standard
+    GSCALAR(K_i_z, "VELCONTROL_Z_I", VELCONTROL_Z_I_DEFAULT),
+
+    // @Param: VELCONTROL_Z_D
+    // @DisplayName: PID Control gain
+    // @Description: N/A
+    // @Units: -
+    // @Range: 0 100
+    // @User: Standard
+    GSCALAR(K_d_z, "VELCONTROL_Z_D", VELCONTROL_Z_D_DEFAULT),
+
+
     // @Param: SURFACE_DEPTH
     // @DisplayName: Depth reading at surface
     // @Description: The depth the external pressure sensor will read when the vehicle is considered at the surface (in centimeters)

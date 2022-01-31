@@ -45,36 +45,20 @@ bool Sub::poshold_init()
     // set to neutral to prevent chaotic behavior (esp. roll/pitch)
     set_neutral_controls();
 
-    //// PID initialization
-    // TBD...
-
-
     return true;
+
 }
 
-// assign PID gais for each degree-of-freedom
+    //// PID initialization
+    float error_integrator_x = 0;
+    float error_integrator_y = 0;
+    float error_integrator_z = 0;
 
-float K_p_x= 200;
-float K_i_x= 20;
-float K_d_x= 20;
+    float _last_t = 0;
 
-float K_p_y= 200;
-float K_i_y= 20;
-float K_d_y= 20;
-
-float K_p_z= 200;
-float K_i_z= 20;
-float K_d_z= 20;
-
-float error_integrator_x = 0;
-float error_integrator_y = 0;
-float error_integrator_z = 0;
-
-float _last_t = 0;
-
-float _last_error_x =  0;
-float _last_error_y =  0;
-float _last_error_z =  0;
+    float _last_error_x =  0;
+    float _last_error_y =  0;
+    float _last_error_z =  0;
 
 // poshold_run - runs the PosHold controller
 // should be called at 100hz or more
@@ -142,9 +126,9 @@ void Sub::poshold_run()
         float error_derivative_y = (error.y - _last_error_y) / dt;
         float error_derivative_z = (error.z - _last_error_z) / dt;
         
-        float tau_x = K_p_x*error.x + K_i_x*error_integrator_x + K_d_x*error_derivative_x;
-        float tau_y = K_p_x*error.y + K_i_y*error_integrator_y + K_d_y*error_derivative_y;
-        float tau_z = K_p_x*error.z + K_i_z*error_integrator_z + K_d_z*error_derivative_z;
+        float tau_x = g.K_p_x*error.x + g.K_i_x*error_integrator_x + g.K_d_x*error_derivative_x;
+        float tau_y = g.K_p_y*error.y + g.K_i_y*error_integrator_y + g.K_d_y*error_derivative_y;
+        float tau_z = g.K_p_z*error.z + g.K_i_z*error_integrator_z + g.K_d_z*error_derivative_z;
         printf("Control inputs:\n");
         printf("tau_x: %.2f N\n", tau_x);
         printf("tau_y: %.2f N\n", tau_y);   
@@ -160,7 +144,20 @@ void Sub::poshold_run()
         _last_error_x= error.x;
         _last_error_y= error.y;
         _last_error_z= error.z;
-    
+
+        printf("PID Control Gains:\n");
+        printf("X\n");
+        printf("Kpx: %.2f\n", g.K_p_x.get());   
+        printf("Kix: %.2f\n", g.K_i_x.get());   
+        printf("Kdx: %.2f\n", g.K_d_x.get());    
+        printf("Y\n");
+        printf("Kpy: %.2f\n", g.K_p_y.get());   
+        printf("Kiy: %.2f\n", g.K_i_y.get());   
+        printf("Kdy: %.2f\n", g.K_d_y.get());   
+        printf("Z\n");
+        printf("Kpz: %.2f\n", g.K_p_z.get());   
+        printf("Kiz: %.2f\n", g.K_i_z.get());   
+        printf("Kdz: %.2f\n", g.K_d_z.get());     
     }
 
     ///////////////////////

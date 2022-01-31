@@ -16,6 +16,40 @@
 # define MAIN_LOOP_RATE    400
 # define MAIN_LOOP_SECONDS 0.0025f
 
+//////////////////////////////////////////////////////////////////////////////
+// PID Control gains
+#ifndef VELCONTROL_X_P_DEFAULT
+# define VELCONTROL_X_P_DEFAULT 1.0f 
+#endif
+#ifndef VELCONTROL_X_I_DEFAULT
+# define VELCONTROL_X_I_DEFAULT 1.0f 
+#endif
+#ifndef VELCONTROL_X_D_DEFAULT
+# define VELCONTROL_X_D_DEFAULT 1.0f 
+#endif
+
+#ifndef VELCONTROL_Y_P_DEFAULT
+# define VELCONTROL_Y_P_DEFAULT 1.0f 
+#endif
+#ifndef VELCONTROL_Y_I_DEFAULT
+# define VELCONTROL_Y_I_DEFAULT 1.0f 
+#endif
+#ifndef VELCONTROL_Y_D_DEFAULT
+# define VELCONTROL_Y_D_DEFAULT 1.0f 
+#endif
+
+#ifndef VELCONTROL_Z_P_DEFAULT
+# define VELCONTROL_Z_P_DEFAULT 1.0f 
+#endif
+#ifndef VELCONTROL_Z_I_DEFAULT
+# define VELCONTROL_Z_I_DEFAULT 1.0f 
+#endif
+#ifndef VELCONTROL_Z_D_DEFAULT
+# define VELCONTROL_Z_D_DEFAULT 1.0f 
+#endif
+
+
+
 #ifndef SURFACE_DEPTH_DEFAULT
 # define SURFACE_DEPTH_DEFAULT -10.0f // pressure sensor reading 10cm depth means craft is considered surfaced
 #endif
