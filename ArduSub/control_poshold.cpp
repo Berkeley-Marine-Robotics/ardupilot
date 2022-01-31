@@ -45,27 +45,19 @@ bool Sub::poshold_init()
     // set to neutral to prevent chaotic behavior (esp. roll/pitch)
     set_neutral_controls();
 
+    //// PID initialization
+    velocity_control.init_velocity_control();
+
     return true;
 
 }
-
-    //// PID initialization
-    float error_integrator_x = 0;
-    float error_integrator_y = 0;
-    float error_integrator_z = 0;
-
-    float _last_t = 0;
-
-    float _last_error_x =  0;
-    float _last_error_y =  0;
-    float _last_error_z =  0;
 
 // poshold_run - runs the PosHold controller
 // should be called at 100hz or more
 void Sub::poshold_run()
 {
     uint32_t tnow = AP_HAL::millis();
-    uint32_t dt = tnow - _last_t;
+    // uint32_t dt = tnow - _last_t;
 
     // When unarmed, disable motors and stabilization
     if (!motors.armed()) {
@@ -97,67 +89,15 @@ void Sub::poshold_run()
         motors.set_forward(pilot_forward);
         motors.set_lateral(pilot_lateral);
     } else{
+
         //// Velocity control
-        // Print target velocity
-        printf("Target velocity in body frame:\n");
-        printf("Vx target: %.2f cm/s\n", _vel_target.x);
-        printf("Vy target: %.2f cm/s\n", _vel_target.y);
-        printf("Vz target: %.2f cm/s\n", _vel_target.z);
-        // Get measured velocity
-        // EKF
-        float velEKF_x = inertial_nav.get_velocity().x;
-        float velEKF_y = inertial_nav.get_velocity().y;
-        _vel_meas.x =  velEKF_x * ahrs_view.cos_yaw() + velEKF_y * ahrs_view.sin_yaw();
-        _vel_meas.y = -velEKF_x * ahrs_view.sin_yaw() + velEKF_y* ahrs_view.cos_yaw();
-        _vel_meas.z = inertial_nav.get_velocity().z;   
-        printf("Horizontal estimated velocity in body frame:\n");
-        printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
-        printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
-        printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
-
-        /// PID Control
-        Vector3f error = _vel_target - _vel_meas; 
-
-        error_integrator_x += error.x*dt;
-        error_integrator_y += error.y*dt;
-        error_integrator_z += error.z*dt;
-
-        float error_derivative_x = (error.x - _last_error_x) / dt;
-        float error_derivative_y = (error.y - _last_error_y) / dt;
-        float error_derivative_z = (error.z - _last_error_z) / dt;
-        
-        float tau_x = g.K_p_x*error.x + g.K_i_x*error_integrator_x + g.K_d_x*error_derivative_x;
-        float tau_y = g.K_p_y*error.y + g.K_i_y*error_integrator_y + g.K_d_y*error_derivative_y;
-        float tau_z = g.K_p_z*error.z + g.K_i_z*error_integrator_z + g.K_d_z*error_derivative_z;
-        printf("Control inputs:\n");
-        printf("tau_x: %.2f N\n", tau_x);
-        printf("tau_y: %.2f N\n", tau_y);   
-        printf("tau_z: %.2f N\n", tau_z); 
+        Vector3f tau = velocity_control.update_velocity_control();
 
         // Send Control to motors -> Overriden by attitude control??
-        motors.set_forward(tau_x);
-        motors.set_lateral(tau_y);
-        motors.set_throttle(tau_z+0.5f);
-
-        // Update
-        _last_t= tnow;
-        _last_error_x= error.x;
-        _last_error_y= error.y;
-        _last_error_z= error.z;
-
-        printf("PID Control Gains:\n");
-        printf("X\n");
-        printf("Kpx: %.2f\n", g.K_p_x.get());   
-        printf("Kix: %.2f\n", g.K_i_x.get());   
-        printf("Kdx: %.2f\n", g.K_d_x.get());    
-        printf("Y\n");
-        printf("Kpy: %.2f\n", g.K_p_y.get());   
-        printf("Kiy: %.2f\n", g.K_i_y.get());   
-        printf("Kdy: %.2f\n", g.K_d_y.get());   
-        printf("Z\n");
-        printf("Kpz: %.2f\n", g.K_p_z.get());   
-        printf("Kiz: %.2f\n", g.K_i_z.get());   
-        printf("Kdz: %.2f\n", g.K_d_z.get());     
+        motors.set_forward(tau.x);
+        motors.set_lateral(tau.y);
+        motors.set_throttle(tau.z+0.5f);
+   
     }
 
     ///////////////////////
@@ -224,7 +164,7 @@ void Sub::poshold_run()
 // Set control target velocity
 void Sub::poshold_set_velocity(const Vector3f& velocity)
 {
-    _vel_target = velocity;
+    velocity_control.set_target_velocity(velocity);
 }
 
 // Get velocity from direct DVL measurements

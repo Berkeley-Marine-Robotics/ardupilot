@@ -48,6 +48,7 @@
 #include <AP_Mission/AP_Mission.h>         // Mission command library
 #include <AC_AttitudeControl/AC_AttitudeControl_Sub.h> // Attitude control library
 #include <AC_AttitudeControl/AC_PosControl_Sub.h>      // Position control library
+#include <AC_VelocityControl/AC_VelocityControl.h>
 #include <AP_Motors/AP_Motors.h>          // AP Motors library
 #include <Filter/Filter.h>             // Filter library
 #include <AP_Relay/AP_Relay.h>           // APM relay
@@ -349,6 +350,8 @@ private:
 
     AC_PosControl_Sub pos_control;
 
+    AC_VelocityControl velocity_control;
+
     AC_WPNav wp_nav;
     AC_Loiter loiter_nav;
     AC_Circle circle_nav;
@@ -504,8 +507,6 @@ private:
     void poshold_run();
     void poshold_set_velocity(const Vector3f& velocity);
     void poshold_send_dvl(const float& dt, const Vector3f &delAng, const Vector3f &delPos,float quality);
-    Vector3f _vel_target;
-    Vector3f _vel_meas;
 
 
     bool motordetect_init();
