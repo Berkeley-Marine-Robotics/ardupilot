@@ -2,8 +2,6 @@
 
 // @file AC_VeclocityControl.h
 // BMR Velocity control library
-
-
        
 #include <AP_Param/AP_Param.h>
 #include <AP_AHRS/AP_AHRS_View.h>
@@ -12,7 +10,18 @@
 //#include <AP_Motors/AP_MotorsMulticopter.h>
 
 
+// Velocity control default definitions
+#define VEL_X_P_DEFAULT 1.0f
+#define VEL_X_I_DEFAULT 1.0f
+#define VEL_X_D_DEFAULT 1.0f
 
+#define VEL_Y_P_DEFAULT 1.0f
+#define VEL_Y_I_DEFAULT 1.0f
+#define VEL_Y_D_DEFAULT 1.0f
+
+#define VEL_Z_P_DEFAULT 1.0f
+#define VEL_Z_I_DEFAULT 1.0f
+#define VEL_Z_D_DEFAULT 1.0f
 
 class AC_VelocityControl{
 public:
@@ -20,10 +29,10 @@ public:
     // Constructor
     AC_VelocityControl(AP_AHRS_View & ahrs, const AP_InertialNav& inav,
                             AP_Motors & motors, 
-                            float dt,
-                            float Px, float Ix, float Dx,
-                            float Py, float Iy, float Dy,
-                            float Pz, float Iz, float Dz);
+                            float dt);
+                            // float Px, float Ix, float Dx,
+                            // float Py, float Iy, float Dy,
+                            // float Pz, float Iz, float Dz);
 
     // Initialize control
     void init_velocity_control();

@@ -5,7 +5,69 @@
 // table of user settable parameters
 const AP_Param::GroupInfo AC_VelocityControl::var_info[] = {
 
-   // AP_GROUPINFO("P",    0, AC_VelocityControl, _dt, 0),
+    // @Param: VEL_X_P
+    // @DisplayName: Kp_x
+    // @Description: PID Control gain
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("VEL_X_P", 1, AC_VelocityControl, _K_p_x, VEL_X_P_DEFAULT),
+
+    // @Param: VEL_X_I
+    // @DisplayName: Ki_x
+    // @Description: PID Control gain
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("VEL_X_I", 2, AC_VelocityControl, _K_i_x, VEL_X_I_DEFAULT),
+
+
+    // @Param: VEL_X_D
+    // @DisplayName: Kd_x
+    // @Description: PID Control gain
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("VEL_X_D", 3, AC_VelocityControl, _K_d_x, VEL_X_D_DEFAULT),
+
+    // @Param: VEL_Y_P
+    // @DisplayName: Kp_y
+    // @Description: PID Control gain
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("VEL_Y_P", 4, AC_VelocityControl, _K_p_y, VEL_Y_P_DEFAULT),
+
+    // @Param: VEL_Y_I
+    // @DisplayName: Ki_y
+    // @Description: PID Control gain
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("VEL_Y_I", 5, AC_VelocityControl, _K_i_y, VEL_Y_I_DEFAULT),
+
+    // @Param: VEL_Y_D
+    // @DisplayName: Kd_y
+    // @Description: PID Control gain
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("VEL_Y_D", 6, AC_VelocityControl, _K_d_y, VEL_Y_D_DEFAULT),
+
+    // @Param: VEL_Z_P
+    // @DisplayName: Kp_z
+    // @Description: PID Control gain
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("VEL_Z_P", 7, AC_VelocityControl, _K_p_z, VEL_Z_P_DEFAULT),
+
+    // @Param: VEL_Z_I
+    // @DisplayName: Ki_z
+    // @Description: PID Control gain
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("VEL_Z_I", 8, AC_VelocityControl, _K_i_z, VEL_Z_I_DEFAULT),
+
+    // @Param: VEL_Z_D
+    // @DisplayName: Kd_z
+    // @Description: PID Control gain
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("VEL_Z_D", 9, AC_VelocityControl, _K_d_z, VEL_Z_D_DEFAULT),
 
     AP_GROUPEND
 };
@@ -13,26 +75,13 @@ const AP_Param::GroupInfo AC_VelocityControl::var_info[] = {
 
 AC_VelocityControl::AC_VelocityControl(AP_AHRS_View & ahrs, const AP_InertialNav& inav,
                             AP_Motors & motors, 
-                            float dt,
-                            float Px, float Ix, float Dx,
-                            float Py, float Iy, float Dy,
-                            float Pz, float Iz, float Dz):
+                            float dt):
         _dt(dt),
         _ahrs(ahrs),
         _inav(inav),
         _motors(motors)
         {
            AP_Param::setup_object_defaults(this, var_info);
-
-           _K_p_x = Px;
-           _K_i_x = Ix;
-           _K_d_x = Dx;
-           _K_p_y = Py;
-           _K_i_y = Iy;
-           _K_d_y = Dy;
-           _K_p_z = Pz;
-           _K_i_z = Iz;
-           _K_d_z = Dz;
         }
 
 
