@@ -8,7 +8,7 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_AHRS/AP_AHRS_View.h>
 #include <AP_InertialNav/AP_InertialNav.h>      // Inertial Navigation library
-//#include <AP_Motors/AP_Motors.h>                // motors library
+#include <AP_Motors/AP_Motors.h>                // motors library
 //#include <AP_Motors/AP_MotorsMulticopter.h>
 
 
@@ -19,7 +19,7 @@ public:
 
     // Constructor
     AC_VelocityControl(AP_AHRS_View & ahrs, const AP_InertialNav& inav,
-                            //AP_Motors & motors, 
+                            AP_Motors & motors, 
                             float dt,
                             float Px, float Ix, float Dx,
                             float Py, float Iy, float Dy,
@@ -31,8 +31,11 @@ public:
     // Set target velocity
     void set_target_velocity(const Vector3f& velocity);
 
-    // Run control
-    Vector3f update_velocity_control();
+    // Update control
+    void update_velocity_control();
+
+    // Send commands to motors
+    void velocity_controller_run();
 
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -71,7 +74,7 @@ protected:
     // references to inertial nav and ahrs libraries
     AP_AHRS_View &                  _ahrs;
     const AP_InertialNav &          _inav;
-    // AP_Motors &               _motors; //AP_MotorsMulticopter &          _motors_multi; 
+    AP_Motors &               _motors; //AP_MotorsMulticopter &          _motors_multi; 
 
 
 

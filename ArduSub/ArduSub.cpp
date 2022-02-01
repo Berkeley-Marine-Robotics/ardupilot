@@ -101,6 +101,7 @@ void Sub::fast_loop()
     if (control_mode != MANUAL && control_mode != MOTOR_DETECT) {
         // run low level rate controllers that only require IMU data
         attitude_control.rate_controller_run();
+        velocity_control.velocity_controller_run();
     }
 
     // send outputs to the motors library

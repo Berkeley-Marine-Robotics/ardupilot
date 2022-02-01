@@ -91,13 +91,7 @@ void Sub::poshold_run()
     } else{
 
         //// Velocity control
-        Vector3f tau = velocity_control.update_velocity_control();
-
-        // Send Control to motors -> Overriden by attitude control??
-        motors.set_forward(tau.x);
-        motors.set_lateral(tau.y);
-        motors.set_throttle(tau.z+0.5f);
-   
+        velocity_control.update_velocity_control();
     }
 
     ///////////////////////

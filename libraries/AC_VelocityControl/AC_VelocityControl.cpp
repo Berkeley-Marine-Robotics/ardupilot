@@ -12,14 +12,15 @@ const AP_Param::GroupInfo AC_VelocityControl::var_info[] = {
 
 
 AC_VelocityControl::AC_VelocityControl(AP_AHRS_View & ahrs, const AP_InertialNav& inav,
-                                //AP_Motors & motors, 
+                            AP_Motors & motors, 
                             float dt,
                             float Px, float Ix, float Dx,
                             float Py, float Iy, float Dy,
                             float Pz, float Iz, float Dz):
         _dt(dt),
         _ahrs(ahrs),
-        _inav(inav)
+        _inav(inav),
+        _motors(motors)
         {
            AP_Param::setup_object_defaults(this, var_info);
 
@@ -54,23 +55,23 @@ void AC_VelocityControl::set_target_velocity(const Vector3f& velocity)
 }
 
 //// Velocity control
-Vector3f AC_VelocityControl::update_velocity_control()
+void AC_VelocityControl::update_velocity_control()
 {
 
         // Print PID gains
         printf("PID Control Gains:\n");
         printf("X\n");
-        printf("Kpx: %.2f\n", K_p_x.get());   
-        printf("Kix: %.2f\n", K_i_x.get());   
-        printf("Kdx: %.2f\n", K_d_x.get());    
+        printf("Kpx: %.2f\n", _K_p_x.get());   
+        printf("Kix: %.2f\n", _K_i_x.get());   
+        printf("Kdx: %.2f\n", _K_d_x.get());    
         printf("Y\n");
-        printf("Kpy: %.2f\n", K_p_y.get());   
-        printf("Kiy: %.2f\n", K_i_y.get());   
-        printf("Kdy: %.2f\n", K_d_y.get());   
+        printf("Kpy: %.2f\n", _K_p_y.get());   
+        printf("Kiy: %.2f\n", _K_i_y.get());   
+        printf("Kdy: %.2f\n", _K_d_y.get());   
         printf("Z\n");
-        printf("Kpz: %.2f\n", K_p_z.get());   
-        printf("Kiz: %.2f\n", K_i_z.get());   
-        printf("Kdz: %.2f\n", K_d_z.get());   
+        printf("Kpz: %.2f\n", _K_p_z.get());   
+        printf("Kiz: %.2f\n", _K_i_z.get());   
+        printf("Kdz: %.2f\n", _K_d_z.get());   
 
         // Print target velocity
         printf("Target velocity in body frame:\n");
@@ -100,22 +101,26 @@ Vector3f AC_VelocityControl::update_velocity_control()
         _error_derivative.y = (_error.y - _last_error.y) / _dt;
         _error_derivative.z = (_error.z - _last_error.z) / _dt;
         
-        _tau.x = K_p_x*_error.x + K_i_x*_error_integrator.x + K_d_x*_error_derivative.x;
-        _tau.y = K_p_y*_error.y + K_i_y*_error_integrator.y + K_d_y*_error_derivative.y;
-        _tau.z = K_p_z*_error.z + K_i_z*_error_integrator.z + K_d_z*_error_derivative.z;
+        _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
+        _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
+        _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
+
         printf("Control inputs:\n");
         printf("tau_x: %.2f N\n", _tau.x);
         printf("tau_y: %.2f N\n", _tau.y);   
         printf("tau_z: %.2f N\n", _tau.z); 
-
 
         // Update
         _last_error.x= _error.x;
         _last_error.y= _error.y;
         _last_error.z= _error.z;
 
-        return _tau;
-
-
 }
 
+void AC_VelocityControl::velocity_controller_run()
+{
+    // Send Control to motors -> Overriden by attitude control??
+    _motors.set_forward(_tau.x);
+    _motors.set_lateral(_tau.y);
+    _motors.set_throttle(_tau.z+0.5f);
+}
