@@ -83,16 +83,42 @@ void Sub::poshold_run()
     printf("lateral: %.2f\n", pilot_lateral);
     printf("down: %.2f\n", pilot_down);
 
-    if (fabsf(pilot_lateral) > 0.05f || fabsf(pilot_forward) > 0.05f || fabsf(pilot_down-0.5f) > 0.05f) {
-        /// Pilot override
-        motors.set_throttle(pilot_down);
-        motors.set_forward(pilot_forward);
-        motors.set_lateral(pilot_lateral);
-    } else{
+    /////
+    // OLD
+    // if (fabsf(pilot_lateral) > 0.05f || fabsf(pilot_forward) > 0.05f || fabsf(pilot_down-0.5f) > 0.05f) {
+    //     /// Pilot override
+    //     motors.set_throttle(pilot_down);
+    //     motors.set_forward(pilot_forward);
+    //     motors.set_lateral(pilot_lateral);
+    // } else{
 
-        //// Velocity control
-        velocity_control.update_velocity_control();
+    //     //// Velocity control
+    //     velocity_control.update_velocity_control();
+    // }
+    // NEW
+    // Pilot override
+    if (fabsf(pilot_lateral) > 0.05f || fabsf(pilot_forward) > 0.05f || fabsf(pilot_down-0.5f) > 0.05f) {
+        // Save target velocity
+        velocity_control.save_target_velocity();
+
+        /// Pilot override
+        Vector3f vel_pilot;
+        vel_pilot.x = 200*pilot_forward;
+        vel_pilot.y = 200*pilot_lateral;
+        vel_pilot.z = 400*(pilot_down-0.5f);
+
+        velocity_control.set_target_velocity(vel_pilot);
+    } else {
+        // Load target velocity before pilot override
+        velocity_control.load_last_target_velocity();
     }
+
+    // Velocity control
+    velocity_control.update_velocity_control();
+    /////
+
+    // Log velocity control data
+    velocity_control.log_data();
 
     ///////////////////////
     // // update xy outputs //
@@ -159,6 +185,7 @@ void Sub::poshold_run()
 void Sub::poshold_set_velocity(const Vector3f& velocity)
 {
     velocity_control.set_target_velocity(velocity);
+    velocity_control.set_last_target_velocity(velocity);
 }
 
 // Get velocity from direct DVL measurements

@@ -79,7 +79,8 @@ AC_VelocityControl::AC_VelocityControl(AP_AHRS_View & ahrs, const AP_InertialNav
         _dt(dt),
         _ahrs(ahrs),
         _inav(inav),
-        _motors(motors)
+        _motors(motors),
+        _flag_override(0)
         {
            AP_Param::setup_object_defaults(this, var_info);
         }
@@ -103,24 +104,29 @@ void AC_VelocityControl::set_target_velocity(const Vector3f& velocity)
     _vel_target = velocity;   
 }
 
+void AC_VelocityControl::set_last_target_velocity(const Vector3f& velocity)
+{
+    _last_vel_target = velocity;   
+}
+
 //// Velocity control
 void AC_VelocityControl::update_velocity_control()
 {
 
         // Print PID gains
-        printf("PID Control Gains:\n");
-        printf("X\n");
-        printf("Kpx: %.2f\n", _K_p_x.get());   
-        printf("Kix: %.2f\n", _K_i_x.get());   
-        printf("Kdx: %.2f\n", _K_d_x.get());    
-        printf("Y\n");
-        printf("Kpy: %.2f\n", _K_p_y.get());   
-        printf("Kiy: %.2f\n", _K_i_y.get());   
-        printf("Kdy: %.2f\n", _K_d_y.get());   
-        printf("Z\n");
-        printf("Kpz: %.2f\n", _K_p_z.get());   
-        printf("Kiz: %.2f\n", _K_i_z.get());   
-        printf("Kdz: %.2f\n", _K_d_z.get());   
+        // printf("PID Control Gains:\n");
+        // printf("X\n");
+        // printf("Kpx: %.2f\n", _K_p_x.get());   
+        // printf("Kix: %.2f\n", _K_i_x.get());   
+        // printf("Kdx: %.2f\n", _K_d_x.get());    
+        // printf("Y\n");
+        // printf("Kpy: %.2f\n", _K_p_y.get());   
+        // printf("Kiy: %.2f\n", _K_i_y.get());   
+        // printf("Kdy: %.2f\n", _K_d_y.get());   
+        // printf("Z\n");
+        // printf("Kpz: %.2f\n", _K_p_z.get());   
+        // printf("Kiz: %.2f\n", _K_i_z.get());   
+        // printf("Kdz: %.2f\n", _K_d_z.get());   
 
         // Print target velocity
         printf("Target velocity in body frame:\n");
@@ -134,10 +140,10 @@ void AC_VelocityControl::update_velocity_control()
         _vel_meas.x =  velEKF_x * _ahrs.cos_yaw() + velEKF_y * _ahrs.sin_yaw();
         _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
         _vel_meas.z = _inav.get_velocity().z;   
-        printf("Horizontal estimated velocity in body frame:\n");
-        printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
-        printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
-        printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
+        // printf("Horizontal estimated velocity in body frame:\n");
+        // printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
+        // printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
+        // printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
 
         /// PID Control
         _error = _vel_target - _vel_meas; 
@@ -154,10 +160,10 @@ void AC_VelocityControl::update_velocity_control()
         _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
         _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
 
-        printf("Control inputs:\n");
-        printf("tau_x: %.2f N\n", _tau.x);
-        printf("tau_y: %.2f N\n", _tau.y);   
-        printf("tau_z: %.2f N\n", _tau.z); 
+        // printf("Control inputs:\n");
+        // printf("tau_x: %.2f N\n", _tau.x);
+        // printf("tau_y: %.2f N\n", _tau.y);   
+        // printf("tau_z: %.2f N\n", _tau.z); 
 
         // Update
         _last_error.x= _error.x;
@@ -172,4 +178,78 @@ void AC_VelocityControl::velocity_controller_run()
     _motors.set_forward(_tau.x);
     _motors.set_lateral(_tau.y);
     _motors.set_throttle(_tau.z+0.5f);
+}
+
+void AC_VelocityControl::save_target_velocity()
+{
+    if (_flag_override == 0){
+        _last_vel_target = _vel_target;
+        _flag_override = 1;
+    }
+}
+
+void AC_VelocityControl::load_last_target_velocity()
+{
+    _vel_target = _last_vel_target;
+    _flag_override = 0;
+}
+
+void AC_VelocityControl::log_data()
+{
+    // Log Inputs/Outputs in x
+    AP::logger().Write("VELX", "TimeUS,veltargetx,velmeasx,taux", "Qfff",
+                            AP_HAL::micros64(),
+                            (double)_vel_target.x,
+                            (double)_vel_meas.x,
+                            (double)_tau.x);
+
+    // Log Inputs/Outputs in y
+    AP::logger().Write("VELY", "TimeUS,veltargety,velmeasy,tauy", "Qfff",
+                            AP_HAL::micros64(),
+                            (double)_vel_target.y,
+                            (double)_vel_meas.y,
+                            (double)_tau.y);
+
+    // Log Inputs/Outputs in z
+    AP::logger().Write("VELZ", "TimeUS,veltargetz,velmeasz,tauz", "Qfff",
+                            AP_HAL::micros64(),
+                            (double)_vel_target.z,
+                            (double)_vel_meas.z,
+                            (double)_tau.z);
+
+    // Log Errors in X
+    AP::logger().Write("ERRX", "TimeUS,errx,errintx,errderx", "Qfff",
+                            AP_HAL::micros64(),
+                            (double)_error.x,
+                            (double)_error_integrator.x,
+                            (double)_error_derivative.x);
+
+    // Log Errors in Y
+    AP::logger().Write("ERRY", "TimeUS,erry,errinty,errdery", "Qfff",
+                            AP_HAL::micros64(),
+                            (double)_error.y,
+                            (double)_error_integrator.y,
+                            (double)_error_derivative.y);
+
+        // Log Errors in Z
+    AP::logger().Write("ERRZ", "TimeUS,errz,errintz,errderz", "Qfff",
+                            AP_HAL::micros64(),
+                            (double)_error.z,
+                            (double)_error_integrator.z,
+                            (double)_error_derivative.z);
+
+
+   // Log gains
+    AP::logger().Write("PID", "TimeUS,PX,IX,DX,PY,IY,DY,PZ,IZ,DZ", "Qfffffffff",
+                            AP_HAL::micros64(),
+                            (double)_K_p_x.get(),
+                            (double)_K_i_x.get(),
+                            (double)_K_d_x.get(),
+                            (double)_K_p_y.get(),
+                            (double)_K_i_y.get(),
+                            (double)_K_d_y.get(),
+                            (double)_K_p_z.get(),
+                            (double)_K_i_z.get(),
+                            (double)_K_d_z.get());
+
 }

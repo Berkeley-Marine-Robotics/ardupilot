@@ -2,7 +2,8 @@
 
 // @file AC_VeclocityControl.h
 // BMR Velocity control library
-       
+
+#include <AP_Logger/AP_Logger.h>        
 #include <AP_Param/AP_Param.h>
 #include <AP_AHRS/AP_AHRS_View.h>
 #include <AP_InertialNav/AP_InertialNav.h>      // Inertial Navigation library
@@ -39,12 +40,22 @@ public:
 
     // Set target velocity
     void set_target_velocity(const Vector3f& velocity);
+    void set_last_target_velocity(const Vector3f& velocity);
 
     // Update control
     void update_velocity_control();
 
     // Send commands to motors
     void velocity_controller_run();
+
+    // Save last target velocity;
+    void save_target_velocity();
+
+    // Load last target velocity
+    void load_last_target_velocity();
+
+    // Log data
+    void log_data();
 
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -53,11 +64,13 @@ protected:
 
     // Parameters
     float _dt;
+    int _flag_override;
 
     // Inputs/Outputs
     Vector3f _vel_target;
     Vector3f _vel_meas;
     Vector3f _tau;
+    Vector3f _last_vel_target;
 
     // Variables
     Vector3f _error;
