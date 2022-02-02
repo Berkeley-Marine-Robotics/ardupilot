@@ -140,21 +140,32 @@ void AC_VelocityControl::update_velocity_control()
         _vel_meas.x =  velEKF_x * _ahrs.cos_yaw() + velEKF_y * _ahrs.sin_yaw();
         _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
         _vel_meas.z = _inav.get_velocity().z;   
-        // printf("Horizontal estimated velocity in body frame:\n");
-        // printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
-        // printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
-        // printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
+        printf("Horizontal estimated velocity in body frame:\n");
+        printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
+        printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
+        printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
 
         /// PID Control
         _error = _vel_target - _vel_meas; 
 
+        // Update Integrators
         _error_integrator.x += _error.x*_dt;
         _error_integrator.y += _error.y*_dt;
         _error_integrator.z += _error.z*_dt;
 
-        _error_derivative.x = (_error.x - _last_error.x) / _dt;
-        _error_derivative.y = (_error.y - _last_error.y) / _dt;
-        _error_derivative.z = (_error.z - _last_error.z) / _dt;
+        // Check the integration saturation
+
+
+        // Derivative Calculation with Low_pass filter
+        // _error_derivative.x = (_error.x - _last_error.x) / _dt;
+        // _error_derivative.y = (_error.y - _last_error.y) / _dt;
+        // _error_derivative.z = (_error.z - _last_error.z) / _dt;
+        float derivative_x = (_error.x - _last_error.x) / _dt;
+        _error_derivative.x += 0.5f * (derivative_x - _error_derivative.x);
+        float derivative_y = (_error.y - _last_error.y) / _dt;
+        _error_derivative.y += 0.5f * (derivative_y - _error_derivative.y);
+        float derivative_z = (_error.z - _last_error.z) / _dt;
+        _error_derivative.z += 0.5f * (derivative_z - _error_derivative.z);
         
         _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
         _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
