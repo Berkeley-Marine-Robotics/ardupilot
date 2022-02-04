@@ -192,8 +192,9 @@ void Sub::poshold_set_velocity(const Vector3f& velocity)
 void Sub::poshold_send_dvl(const float& dt, const Vector3f &delAng, 
     const Vector3f &delPos,float quality)
 {
-    // // DIRECT DVL MEASUREMENTS
-    // _vel_meas = Vector3f(delPos.x/dt, delPos.y/dt, delPos.z/dt);
+    // DIRECT DVL MEASUREMENTS -> Comment out for EKF
+    // Vector3f vel_dvl = Vector3f(delPos.x/dt, delPos.y/dt, delPos.z/dt);
+    // velocity_control.set_measured_velocity(vel_dvl);
 
 }
 

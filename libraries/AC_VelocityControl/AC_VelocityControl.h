@@ -54,6 +54,9 @@ public:
     // Load last target velocity
     void load_last_target_velocity();
 
+    // Set measured velocity directly from DVL
+    void set_measured_velocity(const Vector3f& velocity);
+
     // Log data
     void log_data();
 

@@ -137,12 +137,13 @@ void AC_VelocityControl::update_velocity_control()
         printf("Vy target: %.2f cm/s\n", _vel_target.y);
         printf("Vz target: %.2f cm/s\n", _vel_target.z);
         // Get measured velocity
-        // EKF
+        // EKF -> Comment out for DIRECT FROM DVL
         float velEKF_x = _inav.get_velocity().x;
         float velEKF_y = _inav.get_velocity().y;
         _vel_meas.x = velEKF_x * _ahrs.cos_yaw() + velEKF_y * _ahrs.sin_yaw();
         _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
         _vel_meas.z = _inav.get_velocity().z;   
+        //
         printf("Horizontal estimated velocity in body frame:\n");
         printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
         printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
@@ -212,6 +213,12 @@ void AC_VelocityControl::load_last_target_velocity()
 {
     _vel_target = _last_vel_target;
     _flag_override = 0;
+}
+
+void AC_VelocityControl::set_measured_velocity(const Vector3f& velocity)
+{
+    _vel_meas = velocity;
+
 }
 
 void AC_VelocityControl::log_data()
