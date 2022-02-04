@@ -197,7 +197,7 @@ void AC_VelocityControl::velocity_controller_run()
     // Send Control to motors -> Overriden by attitude control??
     _motors.set_forward(_tau.x);
     _motors.set_lateral(_tau.y);
-    _motors.set_throttle(_tau.z+0.5f);
+    _motors.set_throttle(_tau.z);
 }
 
 void AC_VelocityControl::save_target_velocity()
