@@ -19,6 +19,7 @@
 
 #include <AP_BattMonitor/AP_BattMonitor.h>
 #include <AP_HAL/AP_HAL.h>
+#include <AP_Logger/AP_Logger.h> 
 #include "AP_Motors6DOF.h"
 
 extern const AP_HAL::HAL& hal;
@@ -408,6 +409,17 @@ void AP_Motors6DOF::output_armed_stabilizing_vectored()
     throttle_thrust = get_throttle_bidirectional();
     forward_thrust = _forward_in;
     lateral_thrust = _lateral_in;
+
+
+    AP::logger().Write("THVE", "TimeUS,Fx,Fy,Fz,Mx,My,Mz", "Qffffff",
+                                AP_HAL::micros64(),
+                                (double)forward_thrust,
+                                (double)lateral_thrust,
+                                (double)throttle_thrust,
+                                (double)roll_thrust,
+                                (double)pitch_thrust,
+                                (double)yaw_thrust
+                                );
 
     float rpy_out[AP_MOTORS_MAX_NUM_MOTORS]; // buffer so we don't have to multiply coefficients multiple times.
     float linear_out[AP_MOTORS_MAX_NUM_MOTORS]; // 3 linear DOF mix for each motor

@@ -80,7 +80,10 @@ AC_VelocityControl::AC_VelocityControl(AP_AHRS_View & ahrs, const AP_InertialNav
         _ahrs(ahrs),
         _inav(inav),
         _motors(motors),
-        _flag_override(0)
+        _flag_override(0),
+        _taux_max(9*9.81),
+        _tauy_max(9*9.81),
+        _tauz_max(7*9.81)
         {
            AP_Param::setup_object_defaults(this, var_info);
         }
@@ -137,7 +140,7 @@ void AC_VelocityControl::update_velocity_control()
         // EKF
         float velEKF_x = _inav.get_velocity().x;
         float velEKF_y = _inav.get_velocity().y;
-        _vel_meas.x =  velEKF_x * _ahrs.cos_yaw() + velEKF_y * _ahrs.sin_yaw();
+        _vel_meas.x = velEKF_x * _ahrs.cos_yaw() + velEKF_y * _ahrs.sin_yaw();
         _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
         _vel_meas.z = _inav.get_velocity().z;   
         printf("Horizontal estimated velocity in body frame:\n");
@@ -171,10 +174,16 @@ void AC_VelocityControl::update_velocity_control()
         _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
         _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
 
-        // printf("Control inputs:\n");
-        // printf("tau_x: %.2f N\n", _tau.x);
-        // printf("tau_y: %.2f N\n", _tau.y);   
-        // printf("tau_z: %.2f N\n", _tau.z); 
+        _tau.x = _tau.x/_taux_max;
+        _tau.y = _tau.y/_tauy_max;
+        _tau.z = _tau.z/_tauz_max;
+        _tau.z = (_tau.z+1)/2;
+
+
+        printf("Control inputs:\n");
+        printf("tau_x: %.2f\n", _tau.x);
+        printf("tau_y: %.2f\n", _tau.y);   
+        printf("tau_z: %.2f\n", _tau.z); 
 
         // Update
         _last_error.x= _error.x;

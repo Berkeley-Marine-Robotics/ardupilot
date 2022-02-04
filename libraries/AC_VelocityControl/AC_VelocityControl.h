@@ -65,6 +65,9 @@ protected:
     // Parameters
     float _dt;
     int _flag_override;
+    const float _taux_max;
+    const float _tauy_max;
+    const float _tauz_max;
 
     // Inputs/Outputs
     Vector3f _vel_target;
