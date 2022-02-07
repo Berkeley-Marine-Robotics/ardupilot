@@ -24,6 +24,13 @@
 #define VEL_Z_I_DEFAULT 1.0f
 #define VEL_Z_D_DEFAULT 1.0f
 
+#define VEL_AVOID_X_P_DEFAULT 1.0f
+#define VEL_AVOID_Y_P_DEFAULT 1.0f
+#define VEL_AVOID_Z_P_DEFAULT 1.0f
+
+#define DIST_AVOID_NORM_DEFAULT 1.0f
+
+
 class AC_VelocityControl{
 public:
 
@@ -56,6 +63,7 @@ public:
 
     // Set measured velocity directly from DVL
     void set_measured_velocity(const Vector3f& velocity);
+
 
     // Log data
     void log_data();
@@ -97,6 +105,13 @@ protected:
     AP_Float _K_i_z;
     AP_Float _K_d_z;
 
+    // Avoidance Gains
+    AP_Float _K_avoid_x;
+    AP_Float _K_avoid_y;
+    AP_Float _K_avoid_z;
+
+    // maximum avodance distance
+    AP_Float _d_avoid;
 
 
     // references to inertial nav and ahrs libraries
