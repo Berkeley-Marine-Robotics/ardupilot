@@ -507,7 +507,7 @@ private:
     void poshold_run();
     void poshold_set_velocity(const Vector3f& velocity);
     void poshold_send_dvl(const float& dt, const Vector3f &delAng, const Vector3f &delPos,float quality);
-    void poshold_send_altitude(const float &alt);
+    void poshold_send_distance(const float &dist);
 
     bool motordetect_init();
     void motordetect_run();

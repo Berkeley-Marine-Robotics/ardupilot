@@ -3,6 +3,7 @@
 // @file AC_VeclocityControl.h
 // BMR Velocity control library
 
+#include <cmath>
 #include <AP_Logger/AP_Logger.h>        
 #include <AP_Param/AP_Param.h>
 #include <AP_AHRS/AP_AHRS_View.h>
@@ -64,6 +65,9 @@ public:
     // Set measured velocity directly from DVL
     void set_measured_velocity(const Vector3f& velocity);
 
+    // Set measured distance from DVL
+    void set_measured_distance(const float& dist);
+
 
     // Log data
     void log_data();
@@ -110,9 +114,11 @@ protected:
     AP_Float _K_avoid_y;
     AP_Float _K_avoid_z;
 
-    // maximum avodance distance
-    AP_Float _d_avoid;
-
+    // Hull following
+    AP_Float _d_avoid; // maximum avoidance distance
+    Vector3f _d_meas; // Measured distance
+    Vector3f _vel_avoid;  
+    Vector3f _error_avoid;
 
     // references to inertial nav and ahrs libraries
     AP_AHRS_View &                  _ahrs;

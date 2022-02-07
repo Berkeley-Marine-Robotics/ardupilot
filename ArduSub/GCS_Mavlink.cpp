@@ -686,11 +686,11 @@ case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED: {   // MAV ID: 84
         if (packet.orientation == MAV_SENSOR_ROTATION_PITCH_270) {
             float distance_cm = packet.current_distance;
             if ((distance_cm >= packet.min_distance) && (distance_cm <= packet.max_distance)){
-                sub.poshold_send_altitude(distance_cm*0.01f);
+                sub.poshold_send_distance(distance_cm*0.01f);
             }
         }
 
-
+        break;
     }
 
     case MAVLINK_MSG_ID_SET_POSITION_TARGET_GLOBAL_INT: {  // MAV ID: 86

@@ -201,8 +201,8 @@ void AC_VelocityControl::update_velocity_control()
 
 
         // Obstacle avoidance
-
-        float dist_norm = norm(_d_meas);
+        // d_meas.z = _inav.get_position.z - 10
+        float dist_norm = abs(_d_meas.z);
 
         if (dist_norm <= _d_avoid){
 
@@ -278,6 +278,13 @@ void AC_VelocityControl::set_measured_velocity(const Vector3f& velocity)
 
 }
 
+void AC_VelocityControl::set_measured_distance(const float& dist)
+{
+    _d_meas.x = 0;
+    _d_meas.y = 0;
+    _d_meas.z = dist;
+}
+
 
 void AC_VelocityControl::log_data()
 {
@@ -336,5 +343,15 @@ void AC_VelocityControl::log_data()
                             (double)_K_p_z.get(),
                             (double)_K_i_z.get(),
                             (double)_K_d_z.get());
+
+   // Log hull following parameters
+    AP::logger().Write("HULL", "TimeUS,davoid,dmeasz,Kx,Ky,Kz", "Qfffff",
+                            AP_HAL::micros64(),
+                            (double)_d_avoid.get(),
+                            (double)_d_meas.z,
+                            (double)_K_avoid_x.get(),
+                            (double)_K_avoid_y.get(),
+                            (double)_K_avoid_z.get());
+
 
 }
