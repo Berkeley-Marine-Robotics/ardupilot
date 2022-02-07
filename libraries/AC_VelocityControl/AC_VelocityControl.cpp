@@ -132,10 +132,10 @@ void AC_VelocityControl::update_velocity_control()
         // printf("Kdz: %.2f\n", _K_d_z.get());   
 
         // Print target velocity
-        printf("Target velocity in body frame:\n");
-        printf("Vx target: %.2f cm/s\n", _vel_target.x);
-        printf("Vy target: %.2f cm/s\n", _vel_target.y);
-        printf("Vz target: %.2f cm/s\n", _vel_target.z);
+        // printf("Target velocity in body frame:\n");
+        // printf("Vx target: %.2f cm/s\n", _vel_target.x);
+        // printf("Vy target: %.2f cm/s\n", _vel_target.y);
+        // printf("Vz target: %.2f cm/s\n", _vel_target.z);
         // Get measured velocity
         // EKF -> Comment out for DIRECT FROM DVL
         float velEKF_x = _inav.get_velocity().x;
@@ -144,10 +144,10 @@ void AC_VelocityControl::update_velocity_control()
         _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
         _vel_meas.z = _inav.get_velocity().z;   
         //
-        printf("Horizontal estimated velocity in body frame:\n");
-        printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
-        printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
-        printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
+        // printf("Horizontal estimated velocity in body frame:\n");
+        // printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
+        // printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
+        // printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
 
         /// PID Control
         _error = _vel_target - _vel_meas; 
@@ -181,10 +181,10 @@ void AC_VelocityControl::update_velocity_control()
         _tau.z = (_tau.z+1)/2;
 
 
-        printf("Control inputs:\n");
-        printf("tau_x: %.2f\n", _tau.x);
-        printf("tau_y: %.2f\n", _tau.y);   
-        printf("tau_z: %.2f\n", _tau.z); 
+        // printf("Control inputs:\n");
+        // printf("tau_x: %.2f\n", _tau.x);
+        // printf("tau_y: %.2f\n", _tau.y);   
+        // printf("tau_z: %.2f\n", _tau.z); 
 
         // Update
         _last_error.x= _error.x;

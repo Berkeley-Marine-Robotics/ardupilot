@@ -198,6 +198,12 @@ void Sub::poshold_send_dvl(const float& dt, const Vector3f &delAng,
 
 }
 
+// Get altitude from DVL in meters
+void Sub::poshold_send_altitude(const &alt)
+{
+    //velocity_control.set_altitude(alt);
+
+}
 
 
 #endif  // POSHOLD_ENABLED == ENABLED

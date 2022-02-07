@@ -658,7 +658,7 @@ case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED: {   // MAV ID: 84
         break;
     }
 
-    // Send DVL data to PosHold
+    // Send DVL velocity to PosHold
     case MAVLINK_MSG_ID_VISION_POSITION_DELTA: {
 
         // decode message
@@ -675,6 +675,22 @@ case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED: {   // MAV ID: 84
             packet.confidence);
 
         break;
+    }
+
+    // Send DVL altitude to Poshold
+    case MAVLINK_MSG_ID_DISTANCE_SENSOR: {
+        mavlink_distance_sensor_t packet;
+        mavlink_msg_distance_sensor_decode(&msg, &packet);
+
+        // only accept distances for downward facing sensors
+        if (packet.orientation == MAV_SENSOR_ROTATION_PITCH_270) {
+            float distance_cm = packet.current_distance;
+            if ((distance_cm >= packet.min_distance) && (distance_cm <= packet.max_distance)){
+                sub.poshold_send_altitude(distance_cm*0.01f);
+            }
+        }
+
+
     }
 
     case MAVLINK_MSG_ID_SET_POSITION_TARGET_GLOBAL_INT: {  // MAV ID: 86
