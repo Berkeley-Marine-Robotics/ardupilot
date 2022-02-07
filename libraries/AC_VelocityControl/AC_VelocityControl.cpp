@@ -69,6 +69,34 @@ const AP_Param::GroupInfo AC_VelocityControl::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("VEL_Z_D", 9, AC_VelocityControl, _K_d_z, VEL_Z_D_DEFAULT),
 
+    // @Param: VEL_AVOID_X_P
+    // @DisplayName: 
+    // @Description: Gain to compute avoidance velocity in x_direction
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("VEL_AVOID_X_P", 10, AC_VelocityControl, _K_avoid_x, VEL_AVOID_X_P_DEFAULT),
+
+    // @Param: VEL_AVOID_Y_P
+    // @DisplayName: 
+    // @Description: Gain to compute avoidance velocity in y_direction
+    // @Range: 0 100
+    // @User: Standard
+    AP_GROUPINFO("VEL_AVOID_Y_P", 11, AC_VelocityControl, _K_avoid_y, VEL_AVOID_Y_P_DEFAULT),
+
+    // @Param: VEL_AVOID_Z_P
+    // @DisplayName: 
+    // @Description: Gain to compute avoidance velocity in z_direction
+    // @Range:
+    // @User: Standard
+    AP_GROUPINFO("VEL_AVOID_Z_P", 12, AC_VelocityControl, _K_avoid_z, VEL_AVOID_Z_P_DEFAULT),
+
+    // @Param: VEL_AVOID_Z_P
+    // @DisplayName: 
+    // @Description: Gain to compute avoidance velocity in z_direction
+    // @Range:
+    // @User: Standard
+    AP_GROUPINFO("DIST_AVOID_NORM", 13, AC_VelocityControl, _d_avoid, DIST_AVOID_NORM_DEFAULT),
+
     AP_GROUPEND
 };
 
@@ -170,10 +198,39 @@ void AC_VelocityControl::update_velocity_control()
         _error_derivative.y += 0.5f * (derivative_y - _error_derivative.y);
         float derivative_z = (_error.z - _last_error.z) / _dt;
         _error_derivative.z += 0.5f * (derivative_z - _error_derivative.z);
+
+
+        // Obstacle avoidance
+
+        float dist_norm = norm(_d_meas);
+
+        if (dist_norm <= _d_avoid){
+
+            // Compute avoidance velocity
+            _vel_avoid.x = _K_avoid_x * (_d_meas.x);
+            _vel_avoid.y = _K_avoid_y * (_d_meas.y);
+            _vel_avoid.z = _K_avoid_z * (_d_meas.z);
+
+
+            // Set the target PID velocity as the adjusted velocity
+            // P controller 
+            _error_avoid = _vel_avoid - _vel_meas;
+
+            _tau.x = _K_p_x * (_error_avoid.x);
+            _tau.y = _K_p_y * (_error_avoid.y);
+            _tau.z = _K_p_z * (_error_avoid.z);
+
+
+        } else {
+            _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
+            _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
+            _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
+        }
+
         
-        _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
-        _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
-        _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
+        // _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
+        // _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
+        // _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
 
         _tau.x = _tau.x/_taux_max;
         _tau.y = _tau.y/_tauy_max;
@@ -220,6 +277,7 @@ void AC_VelocityControl::set_measured_velocity(const Vector3f& velocity)
     _vel_meas = velocity;
 
 }
+
 
 void AC_VelocityControl::log_data()
 {
