@@ -14,20 +14,20 @@
 
 // Velocity control default definitions
 #define VEL_X_P_DEFAULT 1.0f
-#define VEL_X_I_DEFAULT 1.0f
-#define VEL_X_D_DEFAULT 1.0f
+#define VEL_X_I_DEFAULT 0.3f
+#define VEL_X_D_DEFAULT 0.01f
 
 #define VEL_Y_P_DEFAULT 1.0f
-#define VEL_Y_I_DEFAULT 1.0f
-#define VEL_Y_D_DEFAULT 1.0f
+#define VEL_Y_I_DEFAULT 0.4f
+#define VEL_Y_D_DEFAULT 0.01f
 
 #define VEL_Z_P_DEFAULT 1.0f
-#define VEL_Z_I_DEFAULT 1.0f
-#define VEL_Z_D_DEFAULT 1.0f
+#define VEL_Z_I_DEFAULT 0.3f
+#define VEL_Z_D_DEFAULT 0.1f
 
 #define VEL_A_X_P_DEFAULT 1.0f
 #define VEL_A_Y_P_DEFAULT 1.0f
-#define VEL_A_Z_P_DEFAULT 1.0f
+#define VEL_A_Z_P_DEFAULT 20.0f 
 
 #define DIS_A_DEFAULT 1.0f
 
@@ -119,6 +119,8 @@ protected:
     Vector3f _d_meas; // Measured distance
     Vector3f _vel_avoid;  
     Vector3f _error_avoid;
+    Vector3f _last_avoid_error;
+    Vector3f _error_avoid_derivative;
 
     // references to inertial nav and ahrs libraries
     AP_AHRS_View &                  _ahrs;
