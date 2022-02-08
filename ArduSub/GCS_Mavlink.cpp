@@ -667,7 +667,13 @@ case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED: {   // MAV ID: 84
         const float time_delta_sec = packet.time_delta_usec / 1000000.0f;
         Vector3f angle_delta = Vector3f(packet.angle_delta[0], packet.angle_delta[1], packet.angle_delta[2]);
         Vector3f position_delta = Vector3f(packet.position_delta[0], packet.position_delta[1], packet.position_delta[2]);
-
+        
+        AP::logger().Write("DVLV", "TimeUS,DX,DY,DZ", "Qfff",
+                            AP_HAL::micros64(),
+                            (double)packet.position_delta[0],
+                            (double)packet.position_delta[1],
+                            (double)packet.position_delta[2]
+                            );
 
         sub.poshold_send_dvl(time_delta_sec, 
             angle_delta,
@@ -682,11 +688,15 @@ case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED: {   // MAV ID: 84
         mavlink_distance_sensor_t packet;
         mavlink_msg_distance_sensor_decode(&msg, &packet);
 
+        AP::logger().Write("DVLA", "TimeUS,distance_cm", "Qf",
+                            AP_HAL::micros64(),
+                            (double)packet.current_distance);
+
         // only accept distances for downward facing sensors
         if (packet.orientation == MAV_SENSOR_ROTATION_PITCH_270) {
             float distance_cm = packet.current_distance;
             if ((distance_cm >= packet.min_distance) && (distance_cm <= packet.max_distance)){
-                sub.poshold_send_distance(distance_cm*0.01f);
+                sub.poshold_send_distance(distance_cm); //*0.01f);
             }
         }
 
