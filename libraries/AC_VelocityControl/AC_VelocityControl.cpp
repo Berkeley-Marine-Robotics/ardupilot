@@ -128,6 +128,10 @@ void AC_VelocityControl::init_velocity_control()
     _last_error.y =  0;
     _last_error.z =  0;
 
+    _last_avoid_error.x =  0;
+    _last_avoid_error.y =  0;
+    _last_avoid_error.z =  0;
+
 }
 
 void AC_VelocityControl::set_target_velocity(const Vector3f& velocity)
@@ -157,7 +161,8 @@ void AC_VelocityControl::update_velocity_control()
         // printf("Z\n");
         // printf("Kpz: %.2f\n", _K_p_z.get());   
         // printf("Kiz: %.2f\n", _K_i_z.get());   
-        // printf("Kdz: %.2f\n", _K_d_z.get());   
+        // printf("Kdz: %.2f\n", _K_d_z.get());  
+        // printf("K_avoid_z: %.2f\n", _K_avoid_z.get()); 
 
         // Print target velocity
         // printf("Target velocity in body frame:\n");
@@ -201,30 +206,53 @@ void AC_VelocityControl::update_velocity_control()
 
 
         // Obstacle avoidance
-        // d_meas.z = _inav.get_position.z - 10
+        _d_meas.z = _inav.get_position().z + 100;
+        printf("z_meas: %.2f\n", _d_meas.z);
         float dist_norm = abs(_d_meas.z);
 
         if (dist_norm <= _d_avoid){
 
             // Compute avoidance velocity
+            _d_meas.x = 0;
+            _d_meas.y = 0;
             _vel_avoid.x = _K_avoid_x * (_d_meas.x);
             _vel_avoid.y = _K_avoid_y * (_d_meas.y);
             _vel_avoid.z = _K_avoid_z * (_d_meas.z);
 
 
             // Set the target PID velocity as the adjusted velocity
-            // P controller 
+            // // PID controller 
+            // avoidance error computation
             _error_avoid = _vel_avoid - _vel_meas;
+
+            // derivative avoidance error computation
+           // float derivative_avoid_x = (_error_avoid.x - _last_avoid_error.x) / _dt;
+           // _error_avoid_derivative.x += 0.5f * (derivative_avoid_x - _error_avoid_derivative.x);
+           // float derivative_avoid_y = (_error_avoid.y - _last_avoid_error.y) / _dt;
+           // _error_avoid_derivative.y += 0.5f * (derivative_avoid_y - _error_avoid_derivative.y);
+           // float derivative_avoid_z = (_error_avoid.z - _last_avoid_error.z) / _dt;
+           // _error_avoid_derivative.z += 0.5f * (derivative_avoid_z - _error_avoid_derivative.z);
+
 
             _tau.x = _K_p_x * (_error_avoid.x);
             _tau.y = _K_p_y * (_error_avoid.y);
             _tau.z = _K_p_z * (_error_avoid.z);
+
+            // _tau.x = _K_p_x * (_error_avoid.x) + _K_d_x * _error_avoid_derivative.x;
+            // _tau.y = _K_p_y * (_error_avoid.y) + _K_d_y * _error_avoid_derivative.y;
+            // _tau.z = _K_p_z * (_error_avoid.z) + _K_d_z * _error_avoid_derivative.z;
 
 
         } else {
             _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
             _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
             _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
+
+            // Update
+            _last_error.x= _error.x;
+            _last_error.y= _error.y;
+            _last_error.z= _error.z;
+
         }
 
         
@@ -242,12 +270,6 @@ void AC_VelocityControl::update_velocity_control()
         // printf("tau_x: %.2f\n", _tau.x);
         // printf("tau_y: %.2f\n", _tau.y);   
         // printf("tau_z: %.2f\n", _tau.z); 
-
-        // Update
-        _last_error.x= _error.x;
-        _last_error.y= _error.y;
-        _last_error.z= _error.z;
-
 }
 
 void AC_VelocityControl::velocity_controller_run()
