@@ -69,33 +69,33 @@ const AP_Param::GroupInfo AC_VelocityControl::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("VEL_Z_D", 9, AC_VelocityControl, _K_d_z, VEL_Z_D_DEFAULT),
 
-    // @Param: VEL_AVOID_X_P
+    // @Param: VEL_A_X_P
     // @DisplayName: 
     // @Description: Gain to compute avoidance velocity in x_direction
     // @Range: 0 100
     // @User: Standard
-    AP_GROUPINFO("VEL_AVOID_X_P", 10, AC_VelocityControl, _K_avoid_x, VEL_AVOID_X_P_DEFAULT),
+    AP_GROUPINFO("VEL_A_X_P", 10, AC_VelocityControl, _K_avoid_x, VEL_A_X_P_DEFAULT),
 
-    // @Param: VEL_AVOID_Y_P
+    // @Param: VEL_A_Y_P
     // @DisplayName: 
     // @Description: Gain to compute avoidance velocity in y_direction
     // @Range: 0 100
     // @User: Standard
-    AP_GROUPINFO("VEL_AVOID_Y_P", 11, AC_VelocityControl, _K_avoid_y, VEL_AVOID_Y_P_DEFAULT),
+    AP_GROUPINFO("VEL_A_Y_P", 11, AC_VelocityControl, _K_avoid_y, VEL_A_Y_P_DEFAULT),
 
-    // @Param: VEL_AVOID_Z_P
+    // @Param: VEL_A_Z_P
     // @DisplayName: 
     // @Description: Gain to compute avoidance velocity in z_direction
     // @Range:
     // @User: Standard
-    AP_GROUPINFO("VEL_AVOID_Z_P", 12, AC_VelocityControl, _K_avoid_z, VEL_AVOID_Z_P_DEFAULT),
+    AP_GROUPINFO("VEL_A_Z_P", 12, AC_VelocityControl, _K_avoid_z, VEL_A_Z_P_DEFAULT),
 
-    // @Param: VEL_AVOID_Z_P
+    // @Param: DIS_A
     // @DisplayName: 
     // @Description: Gain to compute avoidance velocity in z_direction
     // @Range:
     // @User: Standard
-    AP_GROUPINFO("DIST_AVOID_NORM", 13, AC_VelocityControl, _d_avoid, DIST_AVOID_NORM_DEFAULT),
+    AP_GROUPINFO("DIS_A", 13, AC_VelocityControl, _d_avoid, DIS_A_DEFAULT),
 
     AP_GROUPEND
 };

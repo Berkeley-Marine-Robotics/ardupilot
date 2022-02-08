@@ -25,11 +25,11 @@
 #define VEL_Z_I_DEFAULT 1.0f
 #define VEL_Z_D_DEFAULT 1.0f
 
-#define VEL_AVOID_X_P_DEFAULT 1.0f
-#define VEL_AVOID_Y_P_DEFAULT 1.0f
-#define VEL_AVOID_Z_P_DEFAULT 1.0f
+#define VEL_A_X_P_DEFAULT 1.0f
+#define VEL_A_Y_P_DEFAULT 1.0f
+#define VEL_A_Z_P_DEFAULT 1.0f
 
-#define DIST_AVOID_NORM_DEFAULT 1.0f
+#define DIS_A_DEFAULT 1.0f
 
 
 class AC_VelocityControl{
