@@ -125,6 +125,11 @@ protected:
     Vector3f _error_avoid_derivative;
     AP_Float _tan_coeff;
 
+    AP_Float _error_pos_z;
+    AP_Float _error_integrator_pos_z;
+    AP_Float _error_derivative_pos_z;
+    AP_Float _last_error_pos_z;
+
     // references to inertial nav and ahrs libraries
     AP_AHRS_View &                  _ahrs;
     const AP_InertialNav &          _inav;
