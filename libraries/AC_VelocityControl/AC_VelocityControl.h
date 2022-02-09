@@ -30,6 +30,7 @@
 #define VEL_A_Z_P_DEFAULT 20.0f 
 
 #define DIS_A_DEFAULT 1.0f
+#define DIS_T_DEFAULT 1.0f
 
 
 class AC_VelocityControl{
@@ -89,6 +90,7 @@ protected:
     Vector3f _vel_meas;
     Vector3f _tau;
     Vector3f _last_vel_target;
+    Vector3f _vel_follow;
 
     // Variables
     Vector3f _error;
@@ -121,6 +123,7 @@ protected:
     Vector3f _error_avoid;
     Vector3f _last_avoid_error;
     Vector3f _error_avoid_derivative;
+    AP_Float _tan_coeff;
 
     // references to inertial nav and ahrs libraries
     AP_AHRS_View &                  _ahrs;

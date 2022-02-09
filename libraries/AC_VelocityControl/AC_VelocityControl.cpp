@@ -70,32 +70,39 @@ const AP_Param::GroupInfo AC_VelocityControl::var_info[] = {
     AP_GROUPINFO("VEL_Z_D", 9, AC_VelocityControl, _K_d_z, VEL_Z_D_DEFAULT),
 
     // @Param: VEL_A_X_P
-    // @DisplayName: 
+    // @DisplayName: Kx_avoid
     // @Description: Gain to compute avoidance velocity in x_direction
     // @Range: 0 100
     // @User: Standard
     AP_GROUPINFO("VEL_A_X_P", 10, AC_VelocityControl, _K_avoid_x, VEL_A_X_P_DEFAULT),
 
     // @Param: VEL_A_Y_P
-    // @DisplayName: 
+    // @DisplayName: Ky_avoid
     // @Description: Gain to compute avoidance velocity in y_direction
     // @Range: 0 100
     // @User: Standard
     AP_GROUPINFO("VEL_A_Y_P", 11, AC_VelocityControl, _K_avoid_y, VEL_A_Y_P_DEFAULT),
 
     // @Param: VEL_A_Z_P
-    // @DisplayName: 
+    // @DisplayName: Kz_avoid
     // @Description: Gain to compute avoidance velocity in z_direction
     // @Range:
     // @User: Standard
     AP_GROUPINFO("VEL_A_Z_P", 12, AC_VelocityControl, _K_avoid_z, VEL_A_Z_P_DEFAULT),
 
     // @Param: DIS_A
-    // @DisplayName: 
+    // @DisplayName: d_avoid
     // @Description: Gain to compute avoidance velocity in z_direction
     // @Range:
     // @User: Standard
     AP_GROUPINFO("DIS_A", 13, AC_VelocityControl, _d_avoid, DIS_A_DEFAULT),
+
+    // @Param: DIS_T
+    // @DisplayName: tan_coeff
+    // @Description: Gain to modulate target velocity for hull following
+    // @Range:
+    // @User: Standard
+    AP_GROUPINFO("DIS_T", 14, AC_VelocityControl, _tan_coeff, DIS_T_DEFAULT),
 
     AP_GROUPEND
 };
@@ -147,7 +154,125 @@ void AC_VelocityControl::set_last_target_velocity(const Vector3f& velocity)
 //// Velocity control
 void AC_VelocityControl::update_velocity_control()
 {
+        // Get measured velocity
+        // EKF -> Comment out for DIRECT FROM DVL
+        float velEKF_x = _inav.get_velocity().x;
+        float velEKF_y = _inav.get_velocity().y;
+        _vel_meas.x = velEKF_x * _ahrs.cos_yaw() + velEKF_y * _ahrs.sin_yaw();
+        _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
+        _vel_meas.z = _inav.get_velocity().z;   
 
+        // Compute velocity error
+        /////////////////////////
+        // _d_meas.z = _inav.get_position().z + 100;
+
+        _vel_follow.x = _vel_target.x;
+        _vel_follow.y = _vel_target.y;
+        _vel_follow.z = _vel_target.z*tanh(_tan_coeff*(_d_meas.z-_d_avoid)/_d_avoid);
+        // printf("z_meas: %.2f\n", _d_meas.z);
+        // printf("z_meas: %.2f\n", _d_avoid.get());
+        // printf("vel_follow.z: %.2f\n", _vel_follow.z);
+
+        _error = _vel_follow - _vel_meas;
+        /////////////////////////
+        // _error = _vel_target - _vel_meas;
+        //////////////////////// 
+
+        // Update Integrators
+        _error_integrator.x += _error.x*_dt;
+        _error_integrator.y += _error.y*_dt;
+        _error_integrator.z += _error.z*_dt;
+
+        // Check the integration saturation
+
+
+        // Derivative Calculation with Low_pass filter
+        // _error_derivative.x = (_error.x - _last_error.x) / _dt;
+        // _error_derivative.y = (_error.y - _last_error.y) / _dt;
+        // _error_derivative.z = (_error.z - _last_error.z) / _dt;
+        float derivative_x = (_error.x - _last_error.x) / _dt;
+        _error_derivative.x += 0.5f * (derivative_x - _error_derivative.x);
+        float derivative_y = (_error.y - _last_error.y) / _dt;
+        _error_derivative.y += 0.5f * (derivative_y - _error_derivative.y);
+        float derivative_z = (_error.z - _last_error.z) / _dt;
+        _error_derivative.z += 0.5f * (derivative_z - _error_derivative.z);
+
+////////////////////////////////////////////////////
+        // // Obstacle avoidance
+        // _d_meas.z = _inav.get_position().z + 100;
+        // printf("z_meas: %.2f\n", _d_meas.z);
+        // float dist_norm = abs(_d_meas.z);
+
+        // if (dist_norm <= _d_avoid){
+
+        //     // Compute avoidance velocity
+        //     _d_meas.x = 0;
+        //     _d_meas.y = 0;
+        //     _vel_avoid.x = _K_avoid_x * (_d_meas.x);
+        //     _vel_avoid.y = _K_avoid_y * (_d_meas.y);
+        //     _vel_avoid.z = _K_avoid_z * (_d_meas.z);
+
+
+        //     // Set the target PID velocity as the adjusted velocity
+        //     // // PID controller 
+        //     // avoidance error computation
+        //     _error_avoid = _vel_avoid - _vel_meas;
+
+        //     // derivative avoidance error computation
+        //    // float derivative_avoid_x = (_error_avoid.x - _last_avoid_error.x) / _dt;
+        //    // _error_avoid_derivative.x += 0.5f * (derivative_avoid_x - _error_avoid_derivative.x);
+        //    // float derivative_avoid_y = (_error_avoid.y - _last_avoid_error.y) / _dt;
+        //    // _error_avoid_derivative.y += 0.5f * (derivative_avoid_y - _error_avoid_derivative.y);
+        //    // float derivative_avoid_z = (_error_avoid.z - _last_avoid_error.z) / _dt;
+        //    // _error_avoid_derivative.z += 0.5f * (derivative_avoid_z - _error_avoid_derivative.z);
+
+
+        //     _tau.x = _K_p_x * (_error_avoid.x);
+        //     _tau.y = _K_p_y * (_error_avoid.y);
+        //     _tau.z = _K_p_z * (_error_avoid.z);
+
+        //     // _tau.x = _K_p_x * (_error_avoid.x) + _K_d_x * _error_avoid_derivative.x;
+        //     // _tau.y = _K_p_y * (_error_avoid.y) + _K_d_y * _error_avoid_derivative.y;
+        //     // _tau.z = _K_p_z * (_error_avoid.z) + _K_d_z * _error_avoid_derivative.z;
+
+
+        // } else {
+        //     _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
+        //     _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
+        //     _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
+
+        //     // Update
+        //     _last_error.x= _error.x;
+        //     _last_error.y= _error.y;
+        //     _last_error.z= _error.z;
+
+        // }
+
+
+//////////////////////////////////////////////////////
+        // Compute control inputs
+        _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
+        _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
+        _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
+
+        // Update last errors
+        _last_error.x= _error.x;
+        _last_error.y= _error.y;
+        _last_error.z= _error.z;
+
+/////////////////////////////////////////////////////
+
+        // Normalize control inputs 
+        _tau.x = _tau.x/_taux_max;
+        _tau.y = _tau.y/_tauy_max;
+        _tau.z = _tau.z/_tauz_max;
+        _tau.z = (_tau.z+1)/2;
+
+
+
+
+
+        /////////////// PRINTS ///////////////////
         // Print PID gains
         // printf("PID Control Gains:\n");
         // printf("X\n");
@@ -169,102 +294,12 @@ void AC_VelocityControl::update_velocity_control()
         // printf("Vx target: %.2f cm/s\n", _vel_target.x);
         // printf("Vy target: %.2f cm/s\n", _vel_target.y);
         // printf("Vz target: %.2f cm/s\n", _vel_target.z);
-        // Get measured velocity
-        // EKF -> Comment out for DIRECT FROM DVL
-        float velEKF_x = _inav.get_velocity().x;
-        float velEKF_y = _inav.get_velocity().y;
-        _vel_meas.x = velEKF_x * _ahrs.cos_yaw() + velEKF_y * _ahrs.sin_yaw();
-        _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
-        _vel_meas.z = _inav.get_velocity().z;   
-        //
+
+        // Print measured velocity
         // printf("Horizontal estimated velocity in body frame:\n");
         // printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
         // printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
         // printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
-
-        /// PID Control
-        _error = _vel_target - _vel_meas; 
-
-        // Update Integrators
-        _error_integrator.x += _error.x*_dt;
-        _error_integrator.y += _error.y*_dt;
-        _error_integrator.z += _error.z*_dt;
-
-        // Check the integration saturation
-
-
-        // Derivative Calculation with Low_pass filter
-        // _error_derivative.x = (_error.x - _last_error.x) / _dt;
-        // _error_derivative.y = (_error.y - _last_error.y) / _dt;
-        // _error_derivative.z = (_error.z - _last_error.z) / _dt;
-        float derivative_x = (_error.x - _last_error.x) / _dt;
-        _error_derivative.x += 0.5f * (derivative_x - _error_derivative.x);
-        float derivative_y = (_error.y - _last_error.y) / _dt;
-        _error_derivative.y += 0.5f * (derivative_y - _error_derivative.y);
-        float derivative_z = (_error.z - _last_error.z) / _dt;
-        _error_derivative.z += 0.5f * (derivative_z - _error_derivative.z);
-
-
-        // Obstacle avoidance
-        _d_meas.z = _inav.get_position().z + 100;
-        printf("z_meas: %.2f\n", _d_meas.z);
-        float dist_norm = abs(_d_meas.z);
-
-        if (dist_norm <= _d_avoid){
-
-            // Compute avoidance velocity
-            _d_meas.x = 0;
-            _d_meas.y = 0;
-            _vel_avoid.x = _K_avoid_x * (_d_meas.x);
-            _vel_avoid.y = _K_avoid_y * (_d_meas.y);
-            _vel_avoid.z = _K_avoid_z * (_d_meas.z);
-
-
-            // Set the target PID velocity as the adjusted velocity
-            // // PID controller 
-            // avoidance error computation
-            _error_avoid = _vel_avoid - _vel_meas;
-
-            // derivative avoidance error computation
-           // float derivative_avoid_x = (_error_avoid.x - _last_avoid_error.x) / _dt;
-           // _error_avoid_derivative.x += 0.5f * (derivative_avoid_x - _error_avoid_derivative.x);
-           // float derivative_avoid_y = (_error_avoid.y - _last_avoid_error.y) / _dt;
-           // _error_avoid_derivative.y += 0.5f * (derivative_avoid_y - _error_avoid_derivative.y);
-           // float derivative_avoid_z = (_error_avoid.z - _last_avoid_error.z) / _dt;
-           // _error_avoid_derivative.z += 0.5f * (derivative_avoid_z - _error_avoid_derivative.z);
-
-
-            _tau.x = _K_p_x * (_error_avoid.x);
-            _tau.y = _K_p_y * (_error_avoid.y);
-            _tau.z = _K_p_z * (_error_avoid.z);
-
-            // _tau.x = _K_p_x * (_error_avoid.x) + _K_d_x * _error_avoid_derivative.x;
-            // _tau.y = _K_p_y * (_error_avoid.y) + _K_d_y * _error_avoid_derivative.y;
-            // _tau.z = _K_p_z * (_error_avoid.z) + _K_d_z * _error_avoid_derivative.z;
-
-
-        } else {
-            _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
-            _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
-            _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
-
-            // Update
-            _last_error.x= _error.x;
-            _last_error.y= _error.y;
-            _last_error.z= _error.z;
-
-        }
-
-        
-        // _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
-        // _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
-        // _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
-
-        _tau.x = _tau.x/_taux_max;
-        _tau.y = _tau.y/_tauy_max;
-        _tau.z = _tau.z/_tauz_max;
-        _tau.z = (_tau.z+1)/2;
-
 
         // printf("Control inputs:\n");
         // printf("tau_x: %.2f\n", _tau.x);
@@ -325,9 +360,10 @@ void AC_VelocityControl::log_data()
                             (double)_tau.y);
 
     // Log Inputs/Outputs in z
-    AP::logger().Write("VELZ", "TimeUS,veltargetz,velmeasz,tauz", "Qfff",
+    AP::logger().Write("VELZ", "TimeUS,veltargetz,velfollow,velmeasz,tauz", "Qffff",
                             AP_HAL::micros64(),
                             (double)_vel_target.z,
+                            (double)_vel_follow.z,
                             (double)_vel_meas.z,
                             (double)_tau.z);
 
@@ -367,13 +403,14 @@ void AC_VelocityControl::log_data()
                             (double)_K_d_z.get());
 
    // Log hull following parameters
-    AP::logger().Write("HULL", "TimeUS,davoid,dmeasz,Kx,Ky,Kz", "Qfffff",
+    AP::logger().Write("HULL", "TimeUS,davoid,dmeasz,Kx,Ky,Kz,tancoeff", "Qffffff",
                             AP_HAL::micros64(),
                             (double)_d_avoid.get(),
                             (double)_d_meas.z,
                             (double)_K_avoid_x.get(),
                             (double)_K_avoid_y.get(),
-                            (double)_K_avoid_z.get());
+                            (double)_K_avoid_z.get(),
+                            (double)_tan_coeff.get());
 
 
 }
