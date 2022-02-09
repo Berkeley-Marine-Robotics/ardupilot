@@ -135,9 +135,12 @@ void AC_VelocityControl::init_velocity_control()
     _last_error.y =  0;
     _last_error.z =  0;
 
-    _last_avoid_error.x =  0;
-    _last_avoid_error.y =  0;
-    _last_avoid_error.z =  0;
+    _last_error_pos_z = 0;
+
+
+    // _last_avoid_error.x =  0;
+    // _last_avoid_error.y =  0;
+    // _last_avoid_error.z =  0;
 
 }
 
@@ -164,24 +167,26 @@ void AC_VelocityControl::update_velocity_control()
 
         // Compute velocity error
         /////////////////////////
-        // _d_meas.z = _inav.get_position().z + 100;
+        _d_meas.z = _inav.get_position().z + 100;
 
-        _vel_follow.x = _vel_target.x;
-        _vel_follow.y = _vel_target.y;
-        _vel_follow.z = _vel_target.z*tanh(_tan_coeff*(_d_meas.z-_d_avoid)/_d_avoid);
-        // printf("z_meas: %.2f\n", _d_meas.z);
+        // _vel_follow.x = _vel_target.x;
+        // _vel_follow.y = _vel_target.y;
+        // _vel_follow.z = _vel_target.z*tanh(_tan_coeff*(_d_meas.z-_d_avoid)/_d_avoid);
+        printf("z_meas: %.2f\n", _d_meas.z);
         // printf("z_meas: %.2f\n", _d_avoid.get());
         // printf("vel_follow.z: %.2f\n", _vel_follow.z);
 
-        _error = _vel_follow - _vel_meas;
+        // _error = _vel_follow - _vel_meas;
         /////////////////////////
-        // _error = _vel_target - _vel_meas;
+        _error = _vel_target - _vel_meas;
+        _error_pos_z = _d_avoid - _d_meas.z; 
         //////////////////////// 
 
         // Update Integrators
         _error_integrator.x += _error.x*_dt;
         _error_integrator.y += _error.y*_dt;
-        _error_integrator.z += _error.z*_dt;
+        // _error_integrator.z += _error.z*_dt;
+        _error_integrator_pos_z += _error_pos_z * _dt;
 
         // Check the integration saturation
 
@@ -190,12 +195,23 @@ void AC_VelocityControl::update_velocity_control()
         // _error_derivative.x = (_error.x - _last_error.x) / _dt;
         // _error_derivative.y = (_error.y - _last_error.y) / _dt;
         // _error_derivative.z = (_error.z - _last_error.z) / _dt;
+
+        // x_direction
         float derivative_x = (_error.x - _last_error.x) / _dt;
         _error_derivative.x += 0.5f * (derivative_x - _error_derivative.x);
+
+        // y_direction
         float derivative_y = (_error.y - _last_error.y) / _dt;
         _error_derivative.y += 0.5f * (derivative_y - _error_derivative.y);
-        float derivative_z = (_error.z - _last_error.z) / _dt;
-        _error_derivative.z += 0.5f * (derivative_z - _error_derivative.z);
+
+        // z_direction
+        // float derivative_z = (_error.z - _last_error.z) / _dt;
+        // _error_derivative.z += 0.5f * (derivative_z - _error_derivative.z);
+
+        float derivative_pos_z = (_error_pos_z - _last_error_pos_z) / _dt;
+        _error_derivative_pos_z += 0.5f * (derivative_pos_z - _error_derivative_pos_z);
+
+
 
 ////////////////////////////////////////////////////
         // // Obstacle avoidance
@@ -253,12 +269,15 @@ void AC_VelocityControl::update_velocity_control()
         // Compute control inputs
         _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
         _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
-        _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
+        // _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
+        _tau.z = _K_p_z*_error_pos_z + _K_i_z*_error_integrator_pos_z + _K_d_z*_error_derivative_pos_z;
 
         // Update last errors
-        _last_error.x= _error.x;
-        _last_error.y= _error.y;
-        _last_error.z= _error.z;
+        _last_error.x = _error.x;
+        _last_error.y = _error.y;
+        _last_error.z = _error.z;
+
+        _last_error_pos_z = _error_pos_z;
 
 /////////////////////////////////////////////////////
 
