@@ -78,10 +78,10 @@ void Sub::poshold_run()
     float pilot_lateral = channel_lateral->norm_input();
     float pilot_forward = channel_forward->norm_input();
     float pilot_down = channel_throttle->norm_input();
-    printf("Pilot commands\n");
-    printf("forward: %.2f\n", pilot_forward);
-    printf("lateral: %.2f\n", pilot_lateral);
-    printf("down: %.2f\n", pilot_down);
+    // printf("Pilot commands\n");
+    // printf("forward: %.2f\n", pilot_forward);
+    // printf("lateral: %.2f\n", pilot_lateral);
+    // printf("down: %.2f\n", pilot_down);
 
     /////
     // OLD

@@ -688,9 +688,9 @@ case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED: {   // MAV ID: 84
         mavlink_distance_sensor_t packet;
         mavlink_msg_distance_sensor_decode(&msg, &packet);
 
-        AP::logger().Write("DVLA", "TimeUS,distance_cm", "Qu",
-                            AP_HAL::micros64(),
-                            (uint16_t)packet.current_distance);
+        // AP::logger().Write("DVLA", "TimeUS,distance_cm", "Qu",
+        //                     AP_HAL::micros64(),
+        //                     (uint16_t)packet.current_distance);
 
         // only accept distances for downward facing sensors
         if (packet.orientation == MAV_SENSOR_ROTATION_PITCH_270) {

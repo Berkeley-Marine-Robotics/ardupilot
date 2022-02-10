@@ -167,12 +167,17 @@ void AC_VelocityControl::update_velocity_control()
 
         // Compute velocity error
         /////////////////////////
-        _d_meas.z = _inav.get_position().z + 100;
+        uint64_t timer = AP_HAL::micros64() % 1000000;
+        if (timer <= 2500){
+            _d_meas.z = _inav.get_position().z + 100;
+            // printf("timer: %lu\n", timer);
+            // printf("Time: %lu\n", AP_HAL::micros64());
+        }
 
         // _vel_follow.x = _vel_target.x;
         // _vel_follow.y = _vel_target.y;
         // _vel_follow.z = _vel_target.z*tanh(_tan_coeff*(_d_meas.z-_d_avoid)/_d_avoid);
-        printf("z_meas: %.2f\n", _d_meas.z);
+        // printf("z_meas: %.2f\n", _d_meas.z);
         // printf("z_meas: %.2f\n", _d_avoid.get());
         // printf("vel_follow.z: %.2f\n", _vel_follow.z);
 
