@@ -129,6 +129,8 @@ protected:
     AP_Float _error_integrator_pos_z;
     AP_Float _error_derivative_pos_z;
     AP_Float _last_error_pos_z;
+    AP_Float _z_est;
+    AP_Float _P;
 
     // references to inertial nav and ahrs libraries
     AP_AHRS_View &                  _ahrs;

@@ -142,6 +142,10 @@ void AC_VelocityControl::init_velocity_control()
     // _last_avoid_error.y =  0;
     // _last_avoid_error.z =  0;
 
+    // EKF initialization
+    _z_est = 0;
+    _P = 0.1;
+
 }
 
 void AC_VelocityControl::set_target_velocity(const Vector3f& velocity)
@@ -181,10 +185,41 @@ void AC_VelocityControl::update_velocity_control()
         // printf("z_meas: %.2f\n", _d_avoid.get());
         // printf("vel_follow.z: %.2f\n", _vel_follow.z);
 
+        //// Add filter to estimate the state data
+        // Low past filter
+        // float z_dis = _d_meas.z;
+        // _z_est += 0.001f *(z_dis-_z_est);
+
+        // // Kalman Filter 
+        //  Predicited state estimate
+        float A = 1;
+        float B = _dt;
+        _z_est = A * _z_est + B * _vel_meas.z;
+        // Predicted the covariance of the state estimate
+        float Q = 0.000001;
+        _P = A * _P * A + Q;
+        // Measured residual
+        float H_k =1;
+        float dy = _d_meas.z - H_k * _z_est;
+        // Residual Covariance
+        float R_k = 1;
+        float S_k = H_k * _P * H_k + R_k;
+
+        // Near_optimal Kalman filter gain
+        float K_k = _P * H_k *(1.0f / S_k);
+
+        // Update state estimate
+        _z_est = _z_est + K_k * dy;
+
+        // Update P
+        _P = (1 - K_k * H_k) * _P;
+
+
         // _error = _vel_follow - _vel_meas;
         /////////////////////////
         _error = _vel_target - _vel_meas;
-        _error_pos_z = _d_avoid - _d_meas.z; 
+        // _error_pos_z = _d_avoid - _d_meas.z; 
+        _error_pos_z = _d_avoid - _z_est;
         //////////////////////// 
 
         // Update Integrators
@@ -427,10 +462,11 @@ void AC_VelocityControl::log_data()
                             (double)_K_d_z.get());
 
    // Log hull following parameters
-    AP::logger().Write("HULL", "TimeUS,davoid,dmeasz,Kx,Ky,Kz,tancoeff", "Qffffff",
+    AP::logger().Write("HULL", "TimeUS,davoid,dmeasz,zest,Kx,Ky,Kz,tancoeff", "Qfffffff",
                             AP_HAL::micros64(),
                             (double)_d_avoid.get(),
                             (double)_d_meas.z,
+                            (double)_z_est,
                             (double)_K_avoid_x.get(),
                             (double)_K_avoid_y.get(),
                             (double)_K_avoid_z.get(),
