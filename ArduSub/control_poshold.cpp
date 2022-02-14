@@ -203,6 +203,10 @@ void Sub::poshold_send_distance(const float &dist)
 {
     velocity_control.set_measured_distance(dist);
 
+    AP::logger().Write("DVL3", "TimeUS,altfloat3", "Qf",
+        AP_HAL::micros64(),
+        (double) dist);
+
 }
 
 
