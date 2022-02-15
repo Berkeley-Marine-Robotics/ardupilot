@@ -160,17 +160,8 @@ void AC_VelocityControl::set_last_target_velocity(const Vector3f& velocity)
 
 //// Velocity control
 void AC_VelocityControl::update_velocity_control()
-{
-        // Get measured velocity
-        // EKF -> Comment out for DIRECT FROM DVL
-        float velEKF_x = _inav.get_velocity().x;
-        float velEKF_y = _inav.get_velocity().y;
-        _vel_meas.x = velEKF_x * _ahrs.cos_yaw() + velEKF_y * _ahrs.sin_yaw();
-        _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
-        _vel_meas.z = _inav.get_velocity().z;   
-
-        // Compute velocity error
-        /////////////////////////
+{ 
+        /////////////// DVL Altitude Model for SITL ///////////////////
         // uint64_t timer = AP_HAL::micros64() % 1000000;
         // if (timer <= 2500){
         //     _d_meas.z = _inav.get_position().z + 100;
@@ -178,49 +169,48 @@ void AC_VelocityControl::update_velocity_control()
         //     // printf("Time: %lu\n", AP_HAL::micros64());
         // }
 
-        // _vel_follow.x = _vel_target.x;
-        // _vel_follow.y = _vel_target.y;
-        // _vel_follow.z = _vel_target.z*tanh(_tan_coeff*(_d_meas.z-_d_avoid)/_d_avoid);
-        // printf("z_meas: %.2f\n", _d_meas.z);
-        // printf("z_meas: %.2f\n", _d_avoid.get());
-        // printf("vel_follow.z: %.2f\n", _vel_follow.z);
-
-        //// Add filter to estimate the state data
+        /////////////// Kalman Filter for Altitude ///////////////////
         // Low past filter
         // float z_dis = _d_meas.z;
         // _z_est += 0.001f *(z_dis-_z_est);
 
-        // // Kalman Filter 
-        //  Predicited state estimate
-        float A = 1;
-        float B = _dt;
-        _z_est = A * _z_est + B * _vel_meas.z;
-        // Predicted the covariance of the state estimate
-        float Q = 0.000001;
-        _P = A * _P * A + Q;
-        // Measured residual
-        float H_k =1;
-        float dy = _d_meas.z - H_k * _z_est;
-        // Residual Covariance
-        float R_k = 1;
-        float S_k = H_k * _P * H_k + R_k;
+        // // // Kalman Filter 
+        // //  Predicited state estimate
+        // float A = 1;
+        // float B = _dt;
+        // _z_est = A * _z_est + B * _vel_meas.z;
+        // // Predicted the covariance of the state estimate
+        // float Q = 0.000001;
+        // _P = A * _P * A + Q;
+        // // Measured residual
+        // float H_k =1;
+        // float dy = _d_meas.z - H_k * _z_est;
+        // // Residual Covariance
+        // float R_k = 1;
+        // float S_k = H_k * _P * H_k + R_k;
 
-        // Near_optimal Kalman filter gain
-        float K_k = _P * H_k *(1.0f / S_k);
+        // // Near_optimal Kalman filter gain
+        // float K_k = _P * H_k *(1.0f / S_k);
 
-        // Update state estimate
-        _z_est = _z_est + K_k * dy;
+        // // Update state estimate
+        // _z_est = _z_est + K_k * dy;
 
-        // Update P
-        _P = (1 - K_k * H_k) * _P;
+        // // Update P
+        // _P = (1 - K_k * H_k) * _P;
 
+        /////////////// Get Measured Velocity ///////////////////
+        // EKF -> Comment out for DIRECT FROM DVL
+        float velEKF_x = _inav.get_velocity().x;
+        float velEKF_y = _inav.get_velocity().y;
+        _vel_meas.x = velEKF_x * _ahrs.cos_yaw() + velEKF_y * _ahrs.sin_yaw();
+        _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
+        _vel_meas.z = _inav.get_velocity().z;   
 
-        // _error = _vel_follow - _vel_meas;
-        /////////////////////////
+        /////////////// PID Control ///////////////////
+        // Compute errors
         _error = _vel_target - _vel_meas;
-        // _error_pos_z = _d_avoid - _d_meas.z; 
-        _error_pos_z = _d_avoid - _z_est;
-        //////////////////////// 
+        _error_pos_z = _d_avoid - _d_meas.z; 
+        // _error_pos_z = _d_avoid - _z_est;
 
         // Update Integrators
         _error_integrator.x += _error.x*_dt;
@@ -251,75 +241,11 @@ void AC_VelocityControl::update_velocity_control()
         float derivative_pos_z = (_error_pos_z - _last_error_pos_z) / _dt;
         _error_derivative_pos_z += 0.5f * (derivative_pos_z - _error_derivative_pos_z);
 
-
-
-////////////////////////////////////////////////////
-        // // Obstacle avoidance
-        // _d_meas.z = _inav.get_position().z + 100;
-        // printf("z_meas: %.2f\n", _d_meas.z);
-        // float dist_norm = abs(_d_meas.z);
-
-        // if (dist_norm <= _d_avoid){
-
-        //     // Compute avoidance velocity
-        //     _d_meas.x = 0;
-        //     _d_meas.y = 0;
-        //     _vel_avoid.x = _K_avoid_x * (_d_meas.x);
-        //     _vel_avoid.y = _K_avoid_y * (_d_meas.y);
-        //     _vel_avoid.z = _K_avoid_z * (_d_meas.z);
-
-
-        //     // Set the target PID velocity as the adjusted velocity
-        //     // // PID controller 
-        //     // avoidance error computation
-        //     _error_avoid = _vel_avoid - _vel_meas;
-
-        //     // derivative avoidance error computation
-        //    // float derivative_avoid_x = (_error_avoid.x - _last_avoid_error.x) / _dt;
-        //    // _error_avoid_derivative.x += 0.5f * (derivative_avoid_x - _error_avoid_derivative.x);
-        //    // float derivative_avoid_y = (_error_avoid.y - _last_avoid_error.y) / _dt;
-        //    // _error_avoid_derivative.y += 0.5f * (derivative_avoid_y - _error_avoid_derivative.y);
-        //    // float derivative_avoid_z = (_error_avoid.z - _last_avoid_error.z) / _dt;
-        //    // _error_avoid_derivative.z += 0.5f * (derivative_avoid_z - _error_avoid_derivative.z);
-
-
-        //     _tau.x = _K_p_x * (_error_avoid.x);
-        //     _tau.y = _K_p_y * (_error_avoid.y);
-        //     _tau.z = _K_p_z * (_error_avoid.z);
-
-        //     // _tau.x = _K_p_x * (_error_avoid.x) + _K_d_x * _error_avoid_derivative.x;
-        //     // _tau.y = _K_p_y * (_error_avoid.y) + _K_d_y * _error_avoid_derivative.y;
-        //     // _tau.z = _K_p_z * (_error_avoid.z) + _K_d_z * _error_avoid_derivative.z;
-
-
-        // } else {
-        //     _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
-        //     _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
-        //     _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
-
-        //     // Update
-        //     _last_error.x= _error.x;
-        //     _last_error.y= _error.y;
-        //     _last_error.z= _error.z;
-
-        // }
-
-
-//////////////////////////////////////////////////////
         // Compute control inputs
         _tau.x = _K_p_x*_error.x + _K_i_x*_error_integrator.x + _K_d_x*_error_derivative.x;
         _tau.y = _K_p_y*_error.y + _K_i_y*_error_integrator.y + _K_d_y*_error_derivative.y;
         // _tau.z = _K_p_z*_error.z + _K_i_z*_error_integrator.z + _K_d_z*_error_derivative.z;
         _tau.z = _K_p_z*_error_pos_z + _K_i_z*_error_integrator_pos_z + _K_d_z*_error_derivative_pos_z;
-
-        // Update last errors
-        _last_error.x = _error.x;
-        _last_error.y = _error.y;
-        _last_error.z = _error.z;
-
-        _last_error_pos_z = _error_pos_z;
-
-/////////////////////////////////////////////////////
 
         // Normalize control inputs 
         _tau.x = _tau.x/_taux_max;
@@ -327,7 +253,12 @@ void AC_VelocityControl::update_velocity_control()
         _tau.z = _tau.z/_tauz_max;
         _tau.z = (_tau.z+1)/2;
 
+        // Update last errors
+        _last_error.x = _error.x;
+        _last_error.y = _error.y;
+        _last_error.z = _error.z;
 
+        _last_error_pos_z = _error_pos_z;
 
 
 

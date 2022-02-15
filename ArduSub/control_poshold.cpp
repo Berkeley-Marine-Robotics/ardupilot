@@ -10,36 +10,9 @@
 // poshold_init - initialise PosHold controller
 bool Sub::poshold_init()
 {
-
-    //// From PosHold mode
-    // // fail to initialise PosHold mode if no GPS lock
-    // if (!position_ok()) {
-    //     return false;
-    // }
-    // pos_control.init_vel_controller_xyz();
-    // pos_control.set_desired_velocity_xy(0, 0);
-    // pos_control.set_target_to_stopping_point_xy();
-
-    // // initialize vertical speeds and acceleration
-    // pos_control.set_max_speed_z(-get_pilot_speed_dn(), g.pilot_speed_up);
-    // pos_control.set_max_accel_z(g.pilot_accel_z);
-
-    // // initialise position and desired velocity
-    // pos_control.set_alt_target(inertial_nav.get_altitude());
-    // pos_control.set_desired_velocity_z(inertial_nav.get_velocity_z());
-
-    // Stop all thrusters
-    // attitude_control.set_throttle_out(0.5f ,true, g.throttle_filt);
-
-    // pos_control.relax_alt_hold_controllers();
-
     // Attitude control initialization
     attitude_control.relax_attitude_controllers();
     last_pilot_heading = ahrs.yaw_sensor;
-
-    //// From Manual mode
-    // set target altitude to zero for reporting
-    // pos_control.set_alt_target(0);
 
     // attitude hold inputs become thrust inputs in manual mode
     // set to neutral to prevent chaotic behavior (esp. roll/pitch)
@@ -74,14 +47,15 @@ void Sub::poshold_run()
     // set motors to full range
     motors.set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
-    // XYZ control
+    /////////////////////////////////////////////////////
+    // Pilot Overrride
     float pilot_lateral = channel_lateral->norm_input();
     float pilot_forward = channel_forward->norm_input();
     float pilot_down = channel_throttle->norm_input();
-    // printf("Pilot commands\n");
-    // printf("forward: %.2f\n", pilot_forward);
-    // printf("lateral: %.2f\n", pilot_lateral);
-    // printf("down: %.2f\n", pilot_down);
+    printf("Pilot commands\n");
+    printf("forward: %.2f\n", pilot_forward);
+    printf("lateral: %.2f\n", pilot_lateral);
+    printf("down: %.2f\n", pilot_down);
 
     /////
     // OLD
@@ -96,7 +70,6 @@ void Sub::poshold_run()
     //     velocity_control.update_velocity_control();
     // }
     // NEW
-    // Pilot override
     if (fabsf(pilot_lateral) > 0.05f || fabsf(pilot_forward) > 0.05f || fabsf(pilot_down-0.5f) > 0.05f) {
         // Save target velocity
         velocity_control.save_target_velocity();
@@ -112,39 +85,18 @@ void Sub::poshold_run()
         // Load target velocity before pilot override
         velocity_control.load_last_target_velocity();
     }
+    /////////////////////////////////////////////////////
 
+    /////////////////////////////////////////////////////
     // Velocity control
     velocity_control.update_velocity_control();
     /////
 
     // Log velocity control data
     velocity_control.log_data();
+    /////////////////////////////////////////////////////
 
-    ///////////////////////
-    // // update xy outputs //
-    // float pilot_lateral = channel_lateral->norm_input();
-    // float pilot_forward = channel_forward->norm_input();
-
-    // float lateral_out = 0;
-    // float forward_out = 0;
-
-    // pos_control.set_desired_velocity_xy(0,0);
-
-    // if (position_ok()) {
-    //     // Allow pilot to reposition the sub
-    //     if (fabsf(pilot_lateral) > 0.1 || fabsf(pilot_forward) > 0.1) {
-    //         pos_control.set_target_to_stopping_point_xy();
-    //     }
-    //     translate_pos_control_rp(lateral_out, forward_out);
-    //     pos_control.update_xy_controller();
-    // } else {
-    //     pos_control.init_vel_controller_xyz();
-    //     pos_control.set_desired_velocity_xy(0, 0);
-    //     pos_control.set_target_to_stopping_point_xy();
-    // }
-    // motors.set_forward(forward_out + pilot_forward);
-    // motors.set_lateral(lateral_out + pilot_lateral);
-    /////////////////////
+    /////////////////////////////////////////////////////
     // Update attitude //
 
     // get pilot's desired yaw rate
@@ -176,7 +128,7 @@ void Sub::poshold_run()
             attitude_control.input_euler_angle_roll_pitch_yaw(target_roll, target_pitch, last_pilot_heading, true);
         }
     }
-
+    /////////////////////////////////////////////////////
     // // Update z axis //
     // control_depth();
 }
@@ -203,9 +155,9 @@ void Sub::poshold_send_distance(const float &dist)
 {
     velocity_control.set_measured_distance(dist);
 
-    AP::logger().Write("DVL3", "TimeUS,altfloat3", "Qf",
-        AP_HAL::micros64(),
-        (double) dist);
+    // AP::logger().Write("DVL3", "TimeUS,altfloat3", "Qf",
+    //     AP_HAL::micros64(),
+    //     (double) dist);
 
 }
 

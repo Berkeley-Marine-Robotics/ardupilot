@@ -40,9 +40,6 @@ public:
     AC_VelocityControl(AP_AHRS_View & ahrs, const AP_InertialNav& inav,
                             AP_Motors & motors, 
                             float dt);
-                            // float Px, float Ix, float Dx,
-                            // float Py, float Iy, float Dy,
-                            // float Pz, float Iz, float Dz);
 
     // Initialize control
     void init_velocity_control();
@@ -136,8 +133,4 @@ protected:
     AP_AHRS_View &                  _ahrs;
     const AP_InertialNav &          _inav;
     AP_Motors &               _motors; //AP_MotorsMulticopter &          _motors_multi; 
-
-
-
-
 };
