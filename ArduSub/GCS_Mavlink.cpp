@@ -551,6 +551,53 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         break;
     }
 
+    // Send DVL velocity to Hull mode
+    case MAVLINK_MSG_ID_VISION_POSITION_DELTA: {
+
+        // decode message
+        mavlink_vision_position_delta_t packet;
+        mavlink_msg_vision_position_delta_decode(&msg, &packet);
+        const float time_delta_sec = packet.time_delta_usec / 1000000.0f;
+        Vector3f angle_delta = Vector3f(packet.angle_delta[0], packet.angle_delta[1], packet.angle_delta[2]);
+        Vector3f position_delta = Vector3f(packet.position_delta[0], packet.position_delta[1], packet.position_delta[2]);
+        
+        AP::logger().Write("DVLV", "TimeUS,DX,DY,DZ", "Qfff",
+                            AP_HAL::micros64(),
+                            (double)packet.position_delta[0],
+                            (double)packet.position_delta[1],
+                            (double)packet.position_delta[2]
+                            );
+
+        sub.hull_get_dvl_vel(time_delta_sec, 
+            angle_delta,
+            position_delta,
+            packet.confidence);
+
+        break;
+    }
+
+    // Send DVL altitude to Poshold
+    case MAVLINK_MSG_ID_DISTANCE_SENSOR: {
+        mavlink_distance_sensor_t packet;
+        mavlink_msg_distance_sensor_decode(&msg, &packet);
+
+        float distance_cm = (float) packet.current_distance; //*0.01f;
+        AP::logger().Write("DVLA", "TimeUS,altflaot,altint", "QfH",
+                            AP_HAL::micros64(),
+                            (double) distance_cm,
+                            (uint16_t)packet.current_distance);
+
+        // only accept distances for downward facing sensors
+        if (packet.orientation == MAV_SENSOR_ROTATION_PITCH_270) {
+            if ((packet.current_distance >= packet.min_distance) && (packet.current_distance <= packet.max_distance)){
+                sub.hull_get_dvl_alt(distance_cm);
+            }
+        }
+
+        break;
+    }
+
+
     
     case MAVLINK_MSG_ID_SET_ATTITUDE_TARGET: { // MAV ID: 82
         // decode packet
