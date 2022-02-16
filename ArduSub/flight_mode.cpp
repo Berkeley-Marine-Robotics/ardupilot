@@ -59,6 +59,10 @@ bool Sub::set_mode(control_mode_t mode, ModeReason reason)
         success = motordetect_init();
         break;
 
+    case HULL:
+        success = hull_init();
+        break;
+
     default:
         success = false;
         break;
@@ -152,6 +156,10 @@ void Sub::update_flight_mode()
         motordetect_run();
         break;
 
+    case HULL:
+        hull_run();
+        break;
+
     default:
         break;
     }
@@ -194,6 +202,7 @@ bool Sub::mode_has_manual_throttle(control_mode_t mode)
     case ACRO:
     case STABILIZE:
     case MANUAL:
+    case HULL:
         return true;
     default:
         return false;

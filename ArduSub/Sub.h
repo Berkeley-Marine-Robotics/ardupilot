@@ -503,6 +503,9 @@ private:
     bool poshold_init(void);
     void poshold_run();
 
+    bool hull_init(void);
+    void hull_run();
+
     bool motordetect_init();
     void motordetect_run();
 
