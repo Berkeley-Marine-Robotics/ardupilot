@@ -510,6 +510,7 @@ private:
     void hull_run();
     void hull_get_dvl_vel(const float& dt, const Vector3f &delAng, const Vector3f &delPos,float quality);
     void hull_get_dvl_alt(const float &dist);
+    void hull_set_target_velocity(const Vector3f& velocity);
 
     bool motordetect_init();
     void motordetect_run();

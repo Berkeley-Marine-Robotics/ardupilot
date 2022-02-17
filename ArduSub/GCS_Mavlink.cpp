@@ -636,8 +636,8 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         mavlink_set_position_target_local_ned_t packet;
         mavlink_msg_set_position_target_local_ned_decode(&msg, &packet);
 
-        // exit if vehicle is not in Guided mode or Auto-Guided mode
-        if ((sub.control_mode != GUIDED) && !(sub.control_mode == AUTO && sub.auto_mode == Auto_NavGuided)) {
+        // exit if vehicle is not in Guided mode, Auto-Guided or HULL mode
+        if ((sub.control_mode != GUIDED) && (sub.control_mode != HULL) && !(sub.control_mode == AUTO && sub.auto_mode == Auto_NavGuided)) {
             break;
         }
 
@@ -686,10 +686,10 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         if (!vel_ignore) {
             // convert to cm
             vel_vector = Vector3f(packet.vx * 100.0f, packet.vy * 100.0f, -packet.vz * 100.0f);
-            // rotate to body-frame if necessary
-            if (packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
-                sub.rotate_body_frame_to_NE(vel_vector.x, vel_vector.y);
-            }
+            // rotate to body-frame if necessary -> KEEP REF VELOCITY IN BODY FRAME
+            // if (packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
+            //     sub.rotate_body_frame_to_NE(vel_vector.x, vel_vector.y);
+            // }
         }
 
         // send request
@@ -700,6 +700,9 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         } else if (!pos_ignore && vel_ignore && acc_ignore) {
             sub.guided_set_destination(pos_vector);
         }
+
+        // send request to hull mode
+        sub.hull_set_target_velocity(vel_vector);
 
         break;
     }

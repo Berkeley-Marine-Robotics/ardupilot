@@ -202,7 +202,6 @@ bool Sub::mode_has_manual_throttle(control_mode_t mode)
     case ACRO:
     case STABILIZE:
     case MANUAL:
-    case HULL:
         return true;
     default:
         return false;
