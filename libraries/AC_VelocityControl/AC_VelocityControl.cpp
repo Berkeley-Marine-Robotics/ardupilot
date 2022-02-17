@@ -104,11 +104,6 @@ void AC_VelocityControl::init_velocity_control()
     _vel_target.y = 0;
     _vel_target.z = 0;
 
-    // Target distance initialization
-    // Note: If this does not work, write a DVL class that stores DVL data
-    // and with get_dvl_distance and get_dvl_velocity member functions
-    _d_target = _d_meas.z; 
-
     // Velocity control initialization
     _error_integrator.x = 0;
     _error_integrator.y = 0;
@@ -234,41 +229,41 @@ void AC_VelocityControl::update_velocity_control()
 
         ///////////// PRINTS ///////////////////
         // Print PID gains
-        printf("PID Control Gains:\n");
-        printf("X\n");
-        printf("Kpx: %.4f\n", _K_p_x.get());   
-        printf("Kix: %.4f\n", _K_i_x.get());   
-        printf("Kdx: %.4f\n", _K_d_x.get());    
-        printf("Y\n");
-        printf("Kpy: %.4f\n", _K_p_y.get());   
-        printf("Kiy: %.4f\n", _K_i_y.get());   
-        printf("Kdy: %.4f\n", _K_d_y.get());   
-        printf("Z\n");
-        printf("Kpz: %.4f\n", _K_p_z.get());   
-        printf("Kiz: %.4f\n", _K_i_z.get());   
-        printf("Kdz: %.4f\n", _K_d_z.get());  
+        // printf("PID Control Gains:\n");
+        // printf("X\n");
+        // printf("Kpx: %.4f\n", _K_p_x.get());   
+        // printf("Kix: %.4f\n", _K_i_x.get());   
+        // printf("Kdx: %.4f\n", _K_d_x.get());    
+        // printf("Y\n");
+        // printf("Kpy: %.4f\n", _K_p_y.get());   
+        // printf("Kiy: %.4f\n", _K_i_y.get());   
+        // printf("Kdy: %.4f\n", _K_d_y.get());   
+        // printf("Z\n");
+        // printf("Kpz: %.4f\n", _K_p_z.get());   
+        // printf("Kiz: %.4f\n", _K_i_z.get());   
+        // printf("Kdz: %.4f\n", _K_d_z.get());  
 
-        // Print target velocity
-        printf("Target velocity in body frame:\n");
-        printf("Vx target: %.2f cm/s\n", _vel_target.x);
-        printf("Vy target: %.2f cm/s\n", _vel_target.y);
-        printf("Vz target: %.2f cm/s\n", _vel_target.z);
+        // // Print target velocity
+        // printf("Target velocity in body frame:\n");
+        // printf("Vx target: %.2f cm/s\n", _vel_target.x);
+        // printf("Vy target: %.2f cm/s\n", _vel_target.y);
+        // printf("Vz target: %.2f cm/s\n", _vel_target.z);
 
-        // Print measured velocity
-        printf("Horizontal estimated velocity in body frame:\n");
-        printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
-        printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
-        printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
+        // // Print measured velocity
+        // printf("Horizontal estimated velocity in body frame:\n");
+        // printf("Vx estimate: %.2f cm/s\n", _vel_meas.x);
+        // printf("Vy estimate: %.2f cm/s\n", _vel_meas.y);   
+        // printf("Vz estimate: %.2f cm/s\n", _vel_meas.z);   
 
-        // Print target and measured distance
-        printf("Distance to hull:\n");
-        printf("d target: %.2f\n", _d_target.get());
-        printf("d meas: %.2f\n", _d_meas.z);
+        // // Print target and measured distance
+        // printf("Distance to hull:\n");
+        // printf("d target: %.2f\n", _d_target.get());
+        // printf("d meas: %.2f\n", _d_meas.z);
 
-        // printf("Control inputs:\n");
-        printf("tau_x: %.2f\n", _tau.x);
-        printf("tau_y: %.2f\n", _tau.y);   
-        printf("tau_z: %.2f\n", _tau.z); 
+        // // printf("Control inputs:\n");
+        // printf("tau_x: %.2f\n", _tau.x);
+        // printf("tau_y: %.2f\n", _tau.y);   
+        // printf("tau_z: %.2f\n", _tau.z); 
 }
 
 // Send Control to motors
