@@ -107,7 +107,7 @@ void AC_VelocityControl::init_velocity_control()
     // Target distance initialization
     // Note: If this does not work, write a DVL class that stores DVL data
     // and with get_dvl_distance and get_dvl_velocity member functions
-    // _d_target = _d_meas.z; 
+    _d_target = _d_meas.z; 
 
     // Velocity control initialization
     _error_integrator.x = 0;
@@ -132,12 +132,12 @@ void AC_VelocityControl::init_velocity_control()
 void AC_VelocityControl::update_velocity_control()
 { 
         /////////////// DVL Altitude Model for SITL ///////////////////
-        uint64_t timer = AP_HAL::micros64() % 200000; // every 200ms
-        if (timer <= 2500){
-            _d_meas.z = _inav.get_position().z + 100;
+        // uint64_t timer = AP_HAL::micros64() % 200000; // every 200ms
+        // if (timer <= 2500){
+        //     _d_meas.z = _inav.get_position().z + 100;
             // printf("timer: %lu\n", timer);
             // printf("Time: %lu\n", AP_HAL::micros64());
-        }
+        // }
 
         /////////////// Kalman Filter for Altitude ///////////////////
         // Low past filter
