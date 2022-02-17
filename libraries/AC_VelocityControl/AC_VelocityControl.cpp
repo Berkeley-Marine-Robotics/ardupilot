@@ -165,11 +165,11 @@ void AC_VelocityControl::update_velocity_control()
 
         /////////////// Get Measured Velocity ///////////////////
         // EKF -> Comment out for DIRECT FROM DVL
-        float velEKF_x = _inav.get_velocity().x;
-        float velEKF_y = _inav.get_velocity().y;
-        _vel_meas.x = velEKF_x * _ahrs.cos_yaw() + velEKF_y * _ahrs.sin_yaw();
-        _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
-        _vel_meas.z = _inav.get_velocity().z;   
+        // float velEKF_x = _inav.get_velocity().x;
+        // float velEKF_y = _inav.get_velocity().y;
+        // _vel_meas.x = velEKF_x * _ahrs.cos_yaw() + velEKF_y * _ahrs.sin_yaw();
+        // _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
+        // _vel_meas.z = _inav.get_velocity().z;   
 
         /////////////// PID Control ///////////////////
         // Compute errors

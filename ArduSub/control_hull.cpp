@@ -98,15 +98,15 @@ void Sub::hull_set_target_velocity(const Vector3f& velocity)
 void Sub::hull_get_dvl_vel(const float& dt, const Vector3f &delAng, 
     const Vector3f &delPos,float quality)
 {
-    // Vector3f vel_dvl = Vector3f(delPos.x/dt, delPos.y/dt, delPos.z/dt);
-    // velocity_control.get_measured_velocity(vel_dvl);
+    Vector3f vel_dvl = Vector3f(delPos.x/dt, delPos.y/dt, delPos.z/dt);
+    velocity_control.get_measured_velocity(vel_dvl);
 
-    // AP::logger().Write("GETV", "TimeUS,DX,DY,DZ", "Qfff",
-    // 	AP_HAL::micros64(),
-    //     (double)delPos.x,
-    //     (double)delPos.y,
-    //     (double)delPos.z
-    //     );
+    AP::logger().Write("GETV", "TimeUS,DX,DY,DZ", "Qfff",
+    	AP_HAL::micros64(),
+        (double)delPos.x,
+        (double)delPos.y,
+        (double)delPos.z
+        );
 }
 
 // Get distance from DVL in meters
