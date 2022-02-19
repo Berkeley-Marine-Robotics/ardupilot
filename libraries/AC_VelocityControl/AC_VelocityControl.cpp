@@ -172,9 +172,13 @@ void AC_VelocityControl::update_velocity_control()
         // _vel_meas.z = _inav.get_velocity().z;   
 
         /////////////// PID Control ///////////////////
-        // Compute errors
+        // Upward DVL
+        _vel_meas.y = - _vel_meas.y;
+        _vel_meas.z = - _vel_meas.z;
+        
+        // Compute errors: Negative sign in error_pos_z for upward DVL
         _error = _vel_target - _vel_meas;
-        _error_pos_z = _d_target - _d_meas.z; 
+        _error_pos_z = -(_d_target - _d_meas.z); 
         // _error_pos_z = _d_target - _z_est;
 
         // Update Integrators
