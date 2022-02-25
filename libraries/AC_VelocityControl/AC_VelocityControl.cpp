@@ -171,7 +171,7 @@ void AC_VelocityControl::update_velocity_control()
         // _vel_meas.y = -velEKF_x * _ahrs.sin_yaw() + velEKF_y* _ahrs.cos_yaw();
         // _vel_meas.z = _inav.get_velocity().z;   
 
-        /////////////// PID Control ///////////////////
+        ///////////// PID Control ///////////////////
         // Upward DVL
         _vel_meas.y = - _vel_meas.y;
         _vel_meas.z = - _vel_meas.z;
@@ -179,7 +179,7 @@ void AC_VelocityControl::update_velocity_control()
         // Compute errors: Negative sign in error_pos_z for upward DVL
         _error = _vel_target - _vel_meas;
         _error_pos_z = -(_d_target - _d_meas.z); 
-        // _error_pos_z = _d_target - _z_est;
+        // _error_pos_z = _d_target - _d_meas.z;
 
         // Update Integrators
         _error_integrator.x += _error.x*_dt;

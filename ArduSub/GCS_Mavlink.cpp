@@ -559,7 +559,7 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         mavlink_msg_vision_position_delta_decode(&msg, &packet);
         const float time_delta_sec = packet.time_delta_usec / 1000000.0f;
         Vector3f angle_delta = Vector3f(packet.angle_delta[0], packet.angle_delta[1], packet.angle_delta[2]);
-        Vector3f position_delta = Vector3f(packet.position_delta[0], packet.position_delta[1], packet.position_delta[2]);
+        Vector3f position_delta = Vector3f(packet.position_delta[0]*100.0f, packet.position_delta[1]*100.0f, packet.position_delta[2]*100.0f);
         
         AP::logger().Write("DVLV", "TimeUS,DX,DY,DZ", "Qfff",
                             AP_HAL::micros64(),
