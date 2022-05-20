@@ -24,7 +24,7 @@ void AC_PosControl_Sub::set_alt_target_from_climb_rate(float climb_rate_cms, flo
         _pos_target.z = _alt_max;
         _limit.pos_up = true;
     }
-target_velocity
+
     // do not let target alt get below limit
     if (_alt_min < 0 && _alt_min < _alt_max && _pos_target.z < _alt_min) {
         _pos_target.z = _alt_min;

@@ -54,9 +54,10 @@ public:
     void set_target_position(const Vector3f& target_position);
 
     // Get measured position
-    void get_measured_position (const float measured_position_x, // from laser sensor
-                                const float measured_position_y, // from DVL, distance from hull
-                                const float measured_position_z); // from DVL, distance from water surface
+    void get_measured_position (const Vector3f& measured_position);
+//                                const float measured_position_x, // from laser sensor
+//                                const float measured_position_y, // from DVL, distance from hull
+//                                const float measured_position_z); // from DVL, distance from water surface
 
     // Log data
     void log_data();
@@ -73,7 +74,7 @@ protected:
     Vector3f _pos_target;
     Vector3f _pos_measured;
 
-    Vecotor3f _F;
+    Vector3f _F;
 
     // Errors
     Vector3f _error;

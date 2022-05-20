@@ -80,14 +80,14 @@ AC_PositionControl::AC_PositionControl(AP_AHRS_View &ahrs,
         _motors(motors),
         _Fx_max(9 * 9.81),
         _Fy_max(9 * 9.81),
-        _Fz_max(z * 9.81) {
+        _Fz_max(7 * 9.81) {
     AP_Param::setup_object_defaults(this, var_info);
 }
 
 void AC_PositionControl::init_position_control() {
     // Target position initialization
     _pos_target.x = 0;
-    _pos_target.y - 0;
+    _pos_target.y = 0;
     _pos_target.z = 0;
 
     // Position Control initialization
