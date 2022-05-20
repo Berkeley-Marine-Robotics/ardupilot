@@ -631,6 +631,11 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         break;
     }
 
+    //TODO: Assuming that we are passing everything in local NED.
+    // My assumption of frames. Local NED: NED and origin of it is a starting position (orientation?)
+    // How to get the origin of local NED
+    // BOdy: fixed on the body and orientation is also as of the body.
+    // let me first have the code working and later focus on compilation errors
     case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED: {   // MAV ID: 84
         // decode packet
         mavlink_set_position_target_local_ned_t packet;
@@ -702,7 +707,10 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         }
 
         // send request to hull mode
-        sub.hull_set_target_velocity(vel_vector);
+//        sub.hull_set_target_velocity(vel_vector);
+          sub.hull_set_target_position(pos_vector);
+          sub.hull_get_measured_position(vel_vector);
+
 
         break;
     }

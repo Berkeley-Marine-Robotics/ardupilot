@@ -49,6 +49,7 @@
 #include <AC_AttitudeControl/AC_AttitudeControl_Sub.h> // Attitude control library
 #include <AC_AttitudeControl/AC_PosControl_Sub.h>      // Position control library
 #include <AC_VelocityControl/AC_VelocityControl.h>
+#include <AC_PositionControl/AC_PositionControl.h>
 #include <AP_Motors/AP_Motors.h>          // AP Motors library
 #include <Filter/Filter.h>             // Filter library
 #include <AP_Relay/AP_Relay.h>           // APM relay
@@ -351,6 +352,7 @@ private:
     AC_PosControl_Sub pos_control;
 
     AC_VelocityControl velocity_control;
+    AC_PositionControl position_control;
 
     AC_WPNav wp_nav;
     AC_Loiter loiter_nav;
@@ -511,6 +513,9 @@ private:
     void hull_get_dvl_vel(const float& dt, const Vector3f &delAng, const Vector3f &delPos,float quality);
     void hull_get_dvl_alt(const float &dist);
     void hull_set_target_velocity(const Vector3f& velocity);
+    void hull_set_target_position(const Vector3f& position);
+    void hull_get_measured_position(const Vector3f& position);
+
 
     bool motordetect_init();
     void motordetect_run();

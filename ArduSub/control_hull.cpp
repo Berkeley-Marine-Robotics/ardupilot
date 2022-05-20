@@ -14,8 +14,11 @@ bool Sub::hull_init()
     // set to neutral to prevent chaotic behavior (esp. roll/pitch)
     set_neutral_controls();
 
-    //// PID initialization
-    velocity_control.init_velocity_control();
+    //// PID Velocity initialization
+//    velocity_control.init_velocity_control();
+
+    //// PID Position Initialization
+    position_control.init_velocity_control()
 
 	return true;
 }
@@ -48,10 +51,18 @@ void Sub::hull_run()
 
     ////////////////// Velocity Control //////////////////
     // Velocity control
-    velocity_control.update_velocity_control();
+//    velocity_control.update_velocity_control();
 
     // Log velocity control data
-    velocity_control.log_data();
+//    velocity_control.log_data();
+
+    ////////////////// Position Control //////////////////
+    // Position control
+    position_control.update_position_control();
+
+    // Log position control data
+    position_control.log_data();
+
     //////////////////////////////////////////////////////
 
     ////////////////// Update attitude //////////////////
@@ -92,6 +103,16 @@ void Sub::hull_run()
 void Sub::hull_set_target_velocity(const Vector3f& velocity)
 {
     velocity_control.set_target_velocity(velocity);
+}
+
+void Sub::hull_set_target_position(const Vector3f& position)
+{
+    position_control.set_target_position(position);
+}
+
+void Sub::hull_get_measured_position(const Vector3f& position)
+{
+    position_control.get_measured_position(position);
 }
 
 // Get velocity from direct DVL measurements -> Comment out function contents for EKF

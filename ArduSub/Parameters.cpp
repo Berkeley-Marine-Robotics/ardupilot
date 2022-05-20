@@ -452,6 +452,10 @@ const AP_Param::Info Sub::var_info[] = {
     // @Path: ../libraries/AC_VelocityControl/AC_VelocityControl.cpp
     GOBJECT(velocity_control, "VLC_", AC_VelocityControl),
 
+    // @Group: PSC
+    // @Path: ../libraries/AC_PositionControl/AC_PositionControl.cpp
+    GOBJECT(position_control, "PSC_", AC_PositionControl)
+
     // @Group: SR0_
     // @Path: GCS_Mavlink.cpp
     GOBJECTN(_gcs.chan_parameters[0],  gcs0,       "SR0_",     GCS_MAVLINK_Parameters),

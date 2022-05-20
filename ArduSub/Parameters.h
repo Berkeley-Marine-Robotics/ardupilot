@@ -95,9 +95,10 @@ public:
         k_param_NavEKF3,
         k_param_loiter_nav,
         k_param_velocity_control,
+        k_param_position_control,
 
         // Other external hardware interfaces
-        k_param_motors = 65, // Motors
+        k_param_motors = 70, // Motors
         k_param_relay, // Relay
         k_param_camera, // Camera
         k_param_camera_mount, // Camera gimbal

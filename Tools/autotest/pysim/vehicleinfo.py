@@ -296,8 +296,18 @@ class VehicleInfo(object):
         "default_frame": "vectored",
         "frames": {
             "vectored": {
-                "waf_target": "bin/ardusub",
+                "waf_target": "bin/ardusub",--
                 "default_params_filename": "default_params/sub.parm",
+            },
+            "uuv1":{
+            	"waf_target": "bin/ardusub",
+                "default_params_filename": ["default_params/sub.parm",
+                			      "default_params/uuv1.parm"]
+            },
+            "uuv2":{
+            	"waf_target": "bin/ardusub",
+                "default_params_filename": ["default_params/sub.parm",
+                			      "default_params/uuv2.parm"]
             },
             "vectored_6dof": {
                 "waf_target": "bin/ardusub",
