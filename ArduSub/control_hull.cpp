@@ -18,7 +18,7 @@ bool Sub::hull_init()
 //    velocity_control.init_velocity_control();
 
     //// PID Position Initialization
-    position_control.init_velocity_control()
+    position_control.init_position_control();
 
 	return true;
 }
