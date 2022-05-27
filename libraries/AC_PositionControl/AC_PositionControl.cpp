@@ -1,4 +1,5 @@
 #include "AC_PositionControl.h"
+#include <iostream>
 
 // table of user settable parameters
 const AP_Param::GroupInfo AC_PositionControl::var_info[] = {
@@ -106,12 +107,27 @@ void AC_PositionControl::init_position_control() {
     _previous_error.x = 0;
     _previous_error.y = 0;
     _previous_error.z = 0;
+
+    /*std::cout << "KPX: " << _K_p_x << '\n';
+    std::cout << "KIX: " << _K_i_x << '\n';
+    std::cout << "KDX: " << _K_d_x << '\n';
+
+    std::cout << "KPY: " << _K_p_y << '\n';
+    std::cout << "KIY: " << _K_i_y << '\n';
+    std::cout << "KDY: " << _K_d_y << '\n';
+
+    std::cout << "KPZ: " << _K_p_z << '\n';
+    std::cout << "KIZ: " << _K_i_z << '\n';
+    std::cout << "KDZ: " << _K_d_z << '\n';
+*/
 }
 
 void AC_PositionControl::update_position_control() {
 
+//    std::cout << "update: " << '\n';
+
     // PID Control Implementation
-    _error = _pos_target - _pos_measured;
+    _error = _pos_measured - _pos_target;
 
     // Update Integral
     _error_integral.x += _error.x * _dt;
@@ -120,16 +136,20 @@ void AC_PositionControl::update_position_control() {
 
     // Update Derivative
     // x
-    float derivative_x = (_error.x - _previous_error.x) / _dt;
-    _error_derivative.x = 0.5 * (_error_derivative.x + derivative_x);
+//    float derivative_x = (_error.x - _previous_error.x) / _dt;
+//    _error_derivative.x = 0.5 * (_error_derivative.x + derivative_x);
+    _error_derivative.x = (_error.x - _previous_error.x) / _dt;
 
     // y
-    float derivative_y = (_error.y - _previous_error.y) / _dt;
-    _error_derivative.y = 0.5 * (_error_derivative.y + derivative_y);
+//    float derivative_y = (_error.y - _previous_error.y) / _dt;
+//    _error_derivative.y = 0.5 * (_error_derivative.y + derivative_y);
+    _error_derivative.y = (_error.y - _previous_error.y) / _dt;
 
     // z
-    float derivative_z = (_error.z - _previous_error.z) / _dt;
-    _error_derivative.z = 0.5 * (_error_derivative.z + derivative_z);
+//    float derivative_z = (_error.z - _previous_error.z) / _dt;
+//    _error_derivative.z = 0.5 * (_error_derivative.z + derivative_z);
+    _error_derivative.z = (_error.z - _previous_error.z) / _dt;
+
 
     // Compute Control Inputs
     _F.x = _K_p_x * _error.x + _K_i_x * _error_integral.x + _K_d_x * _error_derivative.x;
@@ -143,9 +163,65 @@ void AC_PositionControl::update_position_control() {
 
     // Update previous error
     _previous_error = _error;
+
+    // _inav.get_position() is same as What are we getting from the following function
+    bool status1 = _ahrs.get_relative_position_NED_home(_current_position_from_home);
+
+    bool status2 = _ahrs.get_relative_position_NED_origin(_current_position_from_origin);
+
+    count++;
+    if (count%1000 == 0 && status1  && status2){
+
+//        std::cout << "TargetX: " << _pos_target.x << '\n';
+//        std::cout << "TargetY: " << _pos_target.y << '\n';
+//        std::cout << "TargetZ: " << _pos_target.z << '\n';
+//
+//        std::cout << "MeasuredX: " << _pos_measured.x << '\n';
+//        std::cout << "MeasuredY: " << _pos_measured.y << '\n';
+//        std::cout << "MeasuredZ: " << _pos_measured.z << '\n';
+
+
+//        std::cout << "ErrorX: " << _error.x << '\n';
+//        std::cout << "ErrorY: " << _error.y << '\n';
+//        std::cout << "ErrorZ: " << _error.z << '\n';
+//
+//        std::cout << "FX: " << _F.x  << '\n';
+//        std::cout << "FY: " << _F.y  << '\n';
+//        std::cout << "FZ: " << _F.z  << '\n';
+
+        /*std::cout << "From inav_X: " << _inav.get_position().x << '\n';
+        std::cout << "From inav_Y: " << _inav.get_position().y << '\n';
+        std::cout << "From inav_Z: " << _inav.get_position().z << '\n';
+
+        std::cout << std::endl;
+
+        std::cout << "From ahrs_home_X: " << _current_position_from_home.x << '\n';
+        std::cout << "From ahrs_home_Y: " << _current_position_from_home.y << '\n';
+        std::cout << "From ahrs_home_Z: " << _current_position_from_home.z << '\n';
+
+        std::cout << std::endl;
+
+        std::cout << "From ahrs_origin_X: " << _current_position_from_origin.x << '\n';
+        std::cout << "From ahrs_origin_Y: " << _current_position_from_origin.y << '\n';
+        std::cout << "From ahrs_origin_Z: " << _current_position_from_origin.z << '\n';
+
+        std::cout << std::endl;
+*/
+
+    }
+
 }
 
 void AC_PositionControl::run_position_control() {
+
+//    std:: cout << "run" << '\n';
+
+    float body_Fx = _F.x*_ahrs.cos_yaw() + _F.y*_ahrs.sin_yaw();
+    float body_Fy = -_F.x*_ahrs.sin_yaw() + _F.y*_ahrs.cos_yaw();
+
+    _F.x = body_Fx;
+    _F.y = body_Fy;
+
     _motors.set_forward(_F.x);
     _motors.set_lateral(_F.y);
     _motors.set_throttle(_F.z);
@@ -159,10 +235,10 @@ void AC_PositionControl::get_measured_position(const Vector3f& measured_position
 //                                                const float measured_position_x,
 //                                               const float measured_position_y,
 //                                               const float measured_position_z) {
-//    _pos_measured.x = measured_position_x;
-//    _pos_measured.y = measured_position_y;
-//    _pos_measured.z = measured_position_z;
-      _pos_measured = measured_position;
+    _pos_measured.x = measured_position.x;
+    _pos_measured.y = hull_location - _inav.get_position().y;
+    _pos_measured.z = _inav.get_position().z; // depth reading are negative
+//      _pos_measured = measured_position;
 }
 
 void AC_PositionControl::log_data() {

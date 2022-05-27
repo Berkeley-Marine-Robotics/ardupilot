@@ -194,6 +194,18 @@ void Sub::rotate_body_frame_to_NE(float &x, float &y)
     y = ne_y;
 }
 
+// Custom added
+// rotate vector from local NE frame to vehicle's perspective
+// Laser will tell us the relative distance and we are also
+// interested in maintaining relative distance
+void Sub::rotate_local_NE_to_body_frame(float &x, float &y)
+{
+    float body_x = x*ahrs.cos_yaw() + y*ahrs.sin_yaw();
+    float body_y = -x*ahrs.sin_yaw() + y*ahrs.cos_yaw();
+    x = body_x;
+    y = body_y;
+}
+
 // It will return the PILOT_SPEED_DN value if non zero, otherwise if zero it returns the PILOT_SPEED_UP value.
 uint16_t Sub::get_pilot_speed_dn()
 {

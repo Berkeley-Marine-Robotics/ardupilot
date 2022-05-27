@@ -1,4 +1,5 @@
 #include "Sub.h"
+#include <iostream>
 
 #include "GCS_Mavlink.h"
 
@@ -518,9 +519,9 @@ MAV_RESULT GCS_MAVLINK_Sub::handle_command_long_packet(const mavlink_command_lon
 }
 
 
-
 void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
 {
+//    std::cout << "check: " << '\n';
     switch (msg.msgid) {
 
     case MAVLINK_MSG_ID_HEARTBEAT: {    // MAV ID: 0
@@ -631,14 +632,13 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
         break;
     }
 
-    //TODO: Assuming that we are passing everything in local NED.
-    // My assumption of frames. Local NED: NED and origin of it is a starting position (orientation?)
-    // How to get the origin of local NED
-    // BOdy: fixed on the body and orientation is also as of the body.
-    // let me first have the code working and later focus on compilation errors
+    // pos_vector is desired distance in body frame. So, it does not need any conversion
+    // vel_vector is measured distance ein local frame. So need conversion from local to body.
     case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED: {   // MAV ID: 84
         // decode packet
         mavlink_set_position_target_local_ned_t packet;
+
+//        std::cout << "check: " << '\n';
         mavlink_msg_set_position_target_local_ned_decode(&msg, &packet);
 
         // exit if vehicle is not in Guided mode, Auto-Guided or HULL mode
@@ -671,10 +671,12 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
             // convert to cm
             pos_vector = Vector3f(packet.x * 100.0f, packet.y * 100.0f, -packet.z * 100.0f);
             // rotate to body-frame if necessary
+            /*
             if (packet.coordinate_frame == MAV_FRAME_BODY_NED ||
                     packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
                 sub.rotate_body_frame_to_NE(pos_vector.x, pos_vector.y);
             }
+
             // add body offset if necessary
             if (packet.coordinate_frame == MAV_FRAME_LOCAL_OFFSET_NED ||
                     packet.coordinate_frame == MAV_FRAME_BODY_NED ||
@@ -682,20 +684,42 @@ void GCS_MAVLINK_Sub::handleMessage(const mavlink_message_t &msg)
                 pos_vector += sub.inertial_nav.get_position();
             } else {
                 // convert from alt-above-home to alt-above-ekf-origin
+                // TODO check for this
                 pos_vector.z = sub.pv_alt_above_origin(pos_vector.z);
             }
+             */
+            // Whole block on the top has been commented
+            // desired is in global frame and we want it in body frame
+//            sub.rotate_local_NE_to_body_frame(pos_vector.x, pos_vector.y);
+
+
+
         }
+
+//        std::cout << "After: " << '\n';
+//        std::cout << "Pos_targetX: " << pos_vector.x << '\n';
+//        std::cout << "Pos_targetY: " << pos_vector.y << '\n';
+//        std::cout << "Pos_targetZ: " << pos_vector.z << '\n';
 
         // prepare velocity
         Vector3f vel_vector;
         if (!vel_ignore) {
             // convert to cm
             vel_vector = Vector3f(packet.vx * 100.0f, packet.vy * 100.0f, -packet.vz * 100.0f);
+            // We are rather interested in body frame. Data we are passing through python
+            // is measured distance from leader to follower in local frame we want it to
+            // be in body frame. So just a conversion from local to body.
+            sub.rotate_local_NE_to_body_frame(vel_vector.x, vel_vector.y);
             // rotate to body-frame if necessary -> KEEP REF VELOCITY IN BODY FRAME
             // if (packet.coordinate_frame == MAV_FRAME_BODY_NED || packet.coordinate_frame == MAV_FRAME_BODY_OFFSET_NED) {
             //     sub.rotate_body_frame_to_NE(vel_vector.x, vel_vector.y);
             // }
         }
+
+//        std::cout << "Pos_measuredX: " << vel_vector.x << '\n';
+//        std::cout << "Pos_measuredY: " << vel_vector.y << '\n';
+//        std::cout << "Pos_measuredZ: " << vel_vector.z << '\n';
+
 
         // send request
         if (!pos_ignore && !vel_ignore && acc_ignore) {

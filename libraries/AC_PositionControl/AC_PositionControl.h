@@ -100,6 +100,15 @@ protected:
     AP_AHRS_View& _ahrs;
     const AP_InertialNav& _inav;
     AP_Motors& _motors;
+
+    //For Printing
+    int count{0};
+    Vector3f _current_position_from_home;
+    Vector3f _current_position_from_origin;
+
+    // HUll Location
+    float hull_location{20};
+
 };
 
 
