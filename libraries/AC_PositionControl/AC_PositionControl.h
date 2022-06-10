@@ -107,7 +107,7 @@ protected:
     Vector3f _current_position_from_origin;
 
     // HUll Location
-    float hull_location{20};
+    float   hull_location{20};
 
 };
 

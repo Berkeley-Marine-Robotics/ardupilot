@@ -1,5 +1,6 @@
 #include "AC_PositionControl.h"
 #include <iostream>
+#include <cmath>
 
 // table of user settable parameters
 const AP_Param::GroupInfo AC_PositionControl::var_info[] = {
@@ -108,7 +109,7 @@ void AC_PositionControl::init_position_control() {
     _previous_error.y = 0;
     _previous_error.z = 0;
 
-    /*std::cout << "KPX: " << _K_p_x << '\n';
+    std::cout << "KPX: " << _K_p_x << '\n';
     std::cout << "KIX: " << _K_i_x << '\n';
     std::cout << "KDX: " << _K_d_x << '\n';
 
@@ -119,7 +120,6 @@ void AC_PositionControl::init_position_control() {
     std::cout << "KPZ: " << _K_p_z << '\n';
     std::cout << "KIZ: " << _K_i_z << '\n';
     std::cout << "KDZ: " << _K_d_z << '\n';
-*/
 }
 
 void AC_PositionControl::update_position_control() {
@@ -128,11 +128,18 @@ void AC_PositionControl::update_position_control() {
 
     // PID Control Implementation
     _error = _pos_measured - _pos_target;
+    _error.z = - _error.z;
 
     // Update Integral
-    _error_integral.x += _error.x * _dt;
-    _error_integral.y += _error.y * _dt;
-    _error_integral.z += _error.z * _dt;
+    if (abs(_F.x) < _Fx_max){
+        _error_integral.x += _error.x * _dt;
+    }
+    if (abs(_F.y) < _Fy_max){
+        _error_integral.y += _error.y * _dt;
+    }
+    if(abs(_F.z) < _Fz_max) {
+        _error_integral.z += _error.z * _dt;
+    }
 
     // Update Derivative
     // x
@@ -159,7 +166,8 @@ void AC_PositionControl::update_position_control() {
     // Normalize Control Inputs
     _F.x = _F.x / _Fx_max;
     _F.y = _F.y / _Fy_max;
-    _F.z = _F.z / _Fz_max;
+    _F.z = _F.z / _Fz_max; // Fz in 0 to 0.5 = downward, 0.5 to 1 = upward
+    _F.z = (_F.z + 1)/2;
 
     // Update previous error
     _previous_error = _error;
@@ -182,11 +190,11 @@ void AC_PositionControl::update_position_control() {
 
 
 //        std::cout << "ErrorX: " << _error.x << '\n';
-//        std::cout << "ErrorY: " << _error.y << '\n';
+        std::cout << "ErrorY: " << _error.y << '\n';
 //        std::cout << "ErrorZ: " << _error.z << '\n';
 //
-//        std::cout << "FX: " << _F.x  << '\n';
-//        std::cout << "FY: " << _F.y  << '\n';
+        std::cout << "FX: " << _F.x  << '\n';
+        std::cout << "FY: " << _F.y  << '\n';
 //        std::cout << "FZ: " << _F.z  << '\n';
 
         /*std::cout << "From inav_X: " << _inav.get_position().x << '\n';
@@ -215,12 +223,12 @@ void AC_PositionControl::update_position_control() {
 void AC_PositionControl::run_position_control() {
 
 //    std:: cout << "run" << '\n';
-
-    float body_Fx = _F.x*_ahrs.cos_yaw() + _F.y*_ahrs.sin_yaw();
-    float body_Fy = -_F.x*_ahrs.sin_yaw() + _F.y*_ahrs.cos_yaw();
-
-    _F.x = body_Fx;
-    _F.y = body_Fy;
+    // Converting forces into body frame
+//    float body_Fx = _F.x*_ahrs.cos_yaw() + _F.y*_ahrs.sin_yaw();
+//    float body_Fy = -_F.x*_ahrs.sin_yaw() + _F.y*_ahrs.cos_yaw();
+//
+//    _F.x = body_Fx;
+//    _F.y = body_Fy;
 
     _motors.set_forward(_F.x);
     _motors.set_lateral(_F.y);
@@ -236,7 +244,8 @@ void AC_PositionControl::get_measured_position(const Vector3f& measured_position
 //                                               const float measured_position_y,
 //                                               const float measured_position_z) {
     _pos_measured.x = measured_position.x;
-    _pos_measured.y = hull_location - _inav.get_position().y;
+    _pos_measured.y = measured_position.y; // for tuning gains taking this from python
+//    _pos_measured.y = hull_location - _inav.get_position().y; // Else use this for y
     _pos_measured.z = _inav.get_position().z; // depth reading are negative
 //      _pos_measured = measured_position;
 }
