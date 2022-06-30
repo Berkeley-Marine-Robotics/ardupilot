@@ -1,6 +1,6 @@
 #include "AC_PositionControl.h"
-#include <iostream>
-#include <cmath>
+//#include <iostream>
+//#include <cmath>
 
 // table of user settable parameters
 const AP_Param::GroupInfo AC_PositionControl::var_info[] = {
@@ -109,17 +109,17 @@ void AC_PositionControl::init_position_control() {
     _previous_error.y = 0;
     _previous_error.z = 0;
 
-    std::cout << "KPX: " << _K_p_x << '\n';
-    std::cout << "KIX: " << _K_i_x << '\n';
-    std::cout << "KDX: " << _K_d_x << '\n';
-
-    std::cout << "KPY: " << _K_p_y << '\n';
-    std::cout << "KIY: " << _K_i_y << '\n';
-    std::cout << "KDY: " << _K_d_y << '\n';
-
-    std::cout << "KPZ: " << _K_p_z << '\n';
-    std::cout << "KIZ: " << _K_i_z << '\n';
-    std::cout << "KDZ: " << _K_d_z << '\n';
+//    std::cout << "KPX: " << _K_p_x << '\n';
+//    std::cout << "KIX: " << _K_i_x << '\n';
+//    std::cout << "KDX: " << _K_d_x << '\n';
+//
+//    std::cout << "KPY: " << _K_p_y << '\n';
+//    std::cout << "KIY: " << _K_i_y << '\n';
+//    std::cout << "KDY: " << _K_d_y << '\n';
+//
+//    std::cout << "KPZ: " << _K_p_z << '\n';
+//    std::cout << "KIZ: " << _K_i_z << '\n';
+//    std::cout << "KDZ: " << _K_d_z << '\n';
 }
 
 void AC_PositionControl::update_position_control() {
@@ -190,11 +190,11 @@ void AC_PositionControl::update_position_control() {
 
 
 //        std::cout << "ErrorX: " << _error.x << '\n';
-        std::cout << "ErrorY: " << _error.y << '\n';
+//        std::cout << "ErrorY: " << _error.y << '\n';
 //        std::cout << "ErrorZ: " << _error.z << '\n';
 //
-        std::cout << "FX: " << _F.x  << '\n';
-        std::cout << "FY: " << _F.y  << '\n';
+//        std::cout << "FX: " << _F.x  << '\n';
+//        std::cout << "FY: " << _F.y  << '\n';
 //        std::cout << "FZ: " << _F.z  << '\n';
 
         /*std::cout << "From inav_X: " << _inav.get_position().x << '\n';
@@ -246,8 +246,8 @@ void AC_PositionControl::get_measured_position(const Vector3f& measured_position
     _pos_measured.x = measured_position.x;
     _pos_measured.y = measured_position.y; // for tuning gains taking this from python
 //    _pos_measured.y = hull_location - _inav.get_position().y; // Else use this for y
-    _pos_measured.z = _inav.get_position().z; // depth reading are negative
-//      _pos_measured = measured_position;
+    _pos_measured.z = measured_position.z;
+//    _pos_measured.z = _inav.get_position().z; // depth reading are negative
 }
 
 void AC_PositionControl::log_data() {
