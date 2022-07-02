@@ -41,6 +41,7 @@ void Sub::hull_run()
         // pos_control.set_target_to_stopping_point_xy();
         // pos_control.relax_alt_hold_controllers();
         last_pilot_heading = ahrs.yaw_sensor;
+//        position_control.log_data(); // to check the log while doing bench top testing
         return;
     }
 
